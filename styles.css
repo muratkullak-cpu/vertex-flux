@@ -83,3 +83,13 @@ body{background:linear-gradient(145deg,#061827 0%,#082842 48%,#06131f 100%)}
 .sector-card{border-color:rgba(168,191,209,.15);background:#061a2a}.sector-copy{background:linear-gradient(180deg,#08233a,#061724)}
 .sector-kicker,.sector-copy p{color:#9db4c6}.sector-enter{color:var(--vf-cyan)}
 @media(max-width:720px){.main{padding:26px 18px 60px}.top h1{font-size:34px}.dashboard-hero{display:block}.dashboard-hero h2{font-size:42px}.dashboard-hero p{margin-top:14px}}
+
+/* VERTEX operational UI v1 */
+.ni{width:27px;height:27px;border-radius:8px;display:inline-grid;place-items:center;margin-right:10px;font-size:15px;font-weight:900;vertical-align:middle;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 5px 15px rgba(0,0,0,.22)}
+.ni.blue{background:linear-gradient(135deg,#19b9ff,#0875ee);color:#fff}.ni.amber{background:linear-gradient(135deg,#ffc62e,#ff9500);color:#342000}.ni.green{background:linear-gradient(135deg,#22e79b,#00a96b);color:#03251a}.ni.purple{background:linear-gradient(135deg,#9b5cff,#6334d8);color:#fff}.ni.pink{background:linear-gradient(135deg,#ff4ab8,#d51a7c);color:#fff}.ni.cyan{background:linear-gradient(135deg,#34e3f5,#08a6c5);color:#00333b}.ni.red{background:linear-gradient(135deg,#ff6670,#e8293a);color:#fff}
+.nav button{display:flex;align-items:center;font-size:15px;min-height:49px}
+.nav button.active .ni{filter:saturate(1.15) brightness(1.12)}
+.empty-state{padding:26px;border:1px dashed rgba(168,191,209,.18);border-radius:14px;color:#8faabd;text-align:center;background:rgba(2,16,27,.28)}.empty-state small{color:#69859a}
+.btn.danger{color:#ff8e97;border-color:rgba(255,102,112,.25);margin-bottom:12px}
+.login-logo img,.brand-mark img,.presentation-logo img{mix-blend-mode:screen}
+.login-logo,.brand-mark,.presentation-logo{background:transparent!important}
