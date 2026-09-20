@@ -59,3 +59,27 @@ html,body,#app{min-height:100%;width:100%}body{overflow-x:hidden;background:radi
 
 /* approved logo final placement */
 .login-logo{width:300px;height:230px;margin:0 auto 20px;overflow:visible}.login-logo img{width:100%;height:100%;object-fit:contain;object-position:center}.login-copy{position:relative;z-index:4;padding-top:0}.login-copy .eyebrow{margin-top:0}.brand-mark img{object-fit:contain;object-position:center}
+
+/* Plumbing-inspired VERTEX interior — deep petrol navy + cyan typography */
+:root{--vf-petrol:#082842;--vf-petrol2:#0b3554;--vf-cyan:#43bdf2;--vf-ice:#eef8ff;--vf-soft:#a8bfd1}
+body{background:linear-gradient(145deg,#061827 0%,#082842 48%,#06131f 100%)}
+.side{background:linear-gradient(180deg,#061b2d,#051521);border-right:1px solid rgba(67,189,242,.14)}
+.brand b{font-weight:900;letter-spacing:.10em}.brand small{color:var(--vf-cyan)}
+.main{max-width:none;padding:38px 42px 70px}
+.top{padding-bottom:18px;border-bottom:1px solid rgba(168,191,209,.12)}
+.top .eyebrow{color:var(--vf-cyan);font-weight:800}.top h1{font-size:42px;line-height:1;font-weight:900;letter-spacing:-.045em;color:#fff}
+.nav button{color:#91aabd;font-weight:650}.nav button.active{background:rgba(67,189,242,.12);border-color:rgba(67,189,242,.22);box-shadow:inset 3px 0 0 var(--vf-cyan)}
+.card{background:linear-gradient(155deg,rgba(10,43,68,.92),rgba(5,24,39,.94));border:1px solid rgba(168,191,209,.14);box-shadow:0 22px 60px rgba(0,0,0,.24)}
+.stat span,.muted{color:#9db4c6}.stat strong{font-size:34px;font-weight:900;letter-spacing:-.035em}.stat strong:not(.ok){color:#fff}
+.section-title h2,.card h2{font-weight:900;letter-spacing:-.025em}
+.row{background:rgba(3,18,30,.58);border-color:rgba(168,191,209,.12)}
+.pill{background:rgba(67,189,242,.12);color:#8ddcff}
+.btn.primary{background:linear-gradient(135deg,#43bdf2,#168ee1);border-color:#58c8f5;box-shadow:0 12px 30px rgba(34,170,235,.18)}
+.dashboard-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;margin:4px 0 26px;padding:4px 2px 8px}
+.dashboard-hero h2{margin:0;font-size:54px;line-height:.94;font-weight:950;letter-spacing:-.055em;color:#fff}
+.dashboard-hero h2 span{display:block;color:var(--vf-cyan)}
+.dashboard-hero p{max-width:520px;margin:0;color:#a8bfd1;font-size:14px;line-height:1.65}
+.stats{gap:14px}.stats .card{min-height:126px;border-radius:18px}
+.sector-card{border-color:rgba(168,191,209,.15);background:#061a2a}.sector-copy{background:linear-gradient(180deg,#08233a,#061724)}
+.sector-kicker,.sector-copy p{color:#9db4c6}.sector-enter{color:var(--vf-cyan)}
+@media(max-width:720px){.main{padding:26px 18px 60px}.top h1{font-size:34px}.dashboard-hero{display:block}.dashboard-hero h2{font-size:42px}.dashboard-hero p{margin-top:14px}}
