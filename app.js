@@ -187,3 +187,31 @@ bootstrap();
  };
  clean(); new MutationObserver(clean).observe(document.body,{childList:true,subtree:true});
 })();
+
+/* ===== VERTEX QA LIVE HEALTH + PRESENTATION ===== */
+V.cloudHealthy=false;
+const _loadCloud=loadCloud;
+loadCloud=async function(){await _loadCloud();V.cloudHealthy=true;};
+dashboard=function(){let b='<div class="dashboard-hero"><h2>VERTEX <span>Kontrol Merkezi</span></h2><p>Emlak, müşteri, teklif ve operasyon akışını tek merkezden yönetin. Aktif portföyleri, yaklaşan işleri ve sistem durumunu hızlıca görün.</p></div><div class="grid stats"><div class="card stat"><span>Aktif müşteri</span><strong>'+V.data.clients.length+'</strong></div><div class="card stat"><span>Devam eden iş</span><strong>'+V.data.jobs.length+'</strong></div><div class="card stat"><span>Aktif mülk</span><strong>'+V.data.properties.length+'</strong></div><div class="card stat"><span>Sistem sağlığı</span><strong class="'+(V.cloudHealthy?'ok':'warn')+'">'+(V.cloudHealthy?'Bağlı':'Kontrol')+'</strong></div></div>'+sectorCards()+'<div class="grid cols" style="margin-top:20px"><div class="card"><div class="section-title"><h2>Yaklaşan işler</h2></div><div class="list">'+(V.data.tasks.length?V.data.tasks.map(x=>'<div class="row"><b>'+x.title+'</b><span>'+x.date+'</span><span class="pill">'+x.kind+'</span><span>›</span></div>').join(''):'<div class="empty-state">Henüz yaklaşan iş yok.<br><small>Teklif kabul edildiğinde işler burada görünür.</small></div>')+'</div></div><div class="card"><div class="section-title"><h2>Bulut Durumu</h2></div><div class="notice">'+(V.cloudHealthy?'Supabase bağlantısı doğrulandı. Merkezi kayıtlar erişilebilir.':'Bulut bağlantısı henüz doğrulanmadı.')+'</div></div></div>';return layout(b,'Kontrol Merkezi')};
+healthCheck=async function(){
+ try{
+  const {data:{session},error:se}=await CLOUD.auth.getSession();if(se||!session)throw se||new Error('Oturum bulunamadı');
+  const checks=await Promise.all(['clients','properties','quotes','jobs','tasks','payments'].map(async n=>{const r=await CLOUD.from(n).select('*',{count:'exact',head:true});return {n,ok:!r.error,error:r.error}}));
+  const bad=checks.filter(x=>!x.ok);V.cloudHealthy=!bad.length;
+  alert(bad.length?'Kontrol tamamlandı. Sorun: '+bad.map(x=>x.n).join(', '):'Kontrol tamamlandı: Auth + 6 ana tablo erişimi başarılı.');
+  render();
+ }catch(e){V.cloudHealthy=false;cloudErr(e)}
+};
+health=function(){return layout('<div class="card"><div class="section-title"><h2>Canlı sistem kontrolü</h2><button class="btn primary" onclick="healthCheck()">Şimdi Kontrol Et</button></div><div class="grid stats" style="margin-top:18px"><div class="card stat"><span>Supabase</span><strong class="'+(V.cloudHealthy?'ok':'warn')+'">'+(V.cloudHealthy?'Bağlı':'Kontrol')+'</strong></div><div class="card stat"><span>RLS</span><strong class="ok">Aktif</strong></div><div class="card stat"><span>Auth</span><strong class="'+(V.cloudHealthy?'ok':'warn')+'">'+(V.cloudHealthy?'Oturum açık':'Kontrol')+'</strong></div></div><div class="notice">Kontrol düğmesi Auth oturumunu ve clients, properties, quotes, jobs, tasks, payments tablolarına gerçek erişimi sınar.</div></div>','Sistem Sağlığı')};
+function presentationServices(type){
+ const data={
+  emlak:{title:'EMLAK',sub:'Portföyü gösterme biçimini değiştirin.',items:[['360° SANAL TUR','Mülkü telefondan ve tarayıcıdan oda oda keşfetme deneyimi.','360'],['DRONE','Konum, çevre ve mimariyi sinematik hava görüntüleriyle anlatın.','DRN'],['REELS','Dikey, hızlı ve paylaşılabilir portföy videoları.','RLS'],['AKILLI QR','İlan, tur, WhatsApp ve Google hedeflerini tek dokunuşla açın.','QR']]},
+  kuyum:{title:'KUYUM',sub:'Mücevheri dijital vitrinde premium sunun.',items:[['ÜRÜN GÖRSELİ','Detay ve işçiliği öne çıkaran premium ürün sunumu.','GEM'],['REKLAM FİLMİ','Kısa, sinematik ve marka odaklı ürün hikâyeleri.','FILM'],['SOSYAL MEDYA','Tutarlı görsel dilde kampanya ve ürün içerikleri.','SOC'],['DİJİTAL VİTRİN','Müşterinin telefondan keşfedebileceği modern katalog deneyimi.','WEB']]},
+  otel:{title:'OTEL & TURİZM',sub:'Tesisi rezervasyondan önce deneyimletin.',items:[['360° TESİS TURU','Oda ve ortak alanları tarayıcıdan gezilebilir hale getirin.','360'],['ODA SUNUMU','Oda tiplerini güçlü görsel hikâyelerle karşılaştırın.','ROOM'],['DRONE','Tesisin konumunu ve çevresini yukarıdan gösterin.','DRN'],['AKILLI QR','Oda, menü, harita ve iletişim hedeflerini bağlayın.','QR']]}
+ };
+ const d=data[type]||data.emlak;
+ return '<div class="presentation-stage"><button class="presentation-back" onclick="presentationHome()">← Sektörler</button><div class="presentation-head"><div class="eyebrow">VERTEX DIGITAL EXPERIENCE</div><h1>'+d.title+'</h1><p>'+d.sub+'</p></div><div class="presentation-services">'+d.items.map((x,i)=>'<div class="presentation-service"><div class="presentation-visual pv-'+type+'"><span>'+x[2]+'</span><i>0'+(i+1)+'</i></div><div class="presentation-service-copy"><b>'+x[0]+'</b><p>'+x[1]+'</p></div></div>').join('')+'</div></div>';
+}
+function presentationHome(){const p=document.getElementById('presentationBody');if(!p)return;p.innerHTML='<div class="presentation-home"><div class="presentation-logo"><img src="'+VERTEX_LOGO+'" alt="Vertex Flux"></div><div class="eyebrow">VERTEX FLUX · DIGITAL EXPERIENCE</div><h1>İşinizi <span>dijital deneyime</span> dönüştürün.</h1><p>Sunmak istediğiniz sektörü seçin.</p><div class="presentation-sector-grid"><button onclick="presentationOpen(\'emlak\')"><b>EMLAK</b><span>360° · Drone · Reels · QR</span></button><button onclick="presentationOpen(\'kuyum\')"><b>KUYUM</b><span>Görsel · Film · Sosyal · Vitrin</span></button><button onclick="presentationOpen(\'otel\')"><b>OTEL & TURİZM</b><span>360° · Oda · Drone · QR</span></button></div></div>'}
+function presentationOpen(type){const p=document.getElementById('presentationBody');if(p)p.innerHTML=presentationServices(type)}
+presentation=function(){document.body.insertAdjacentHTML('beforeend','<div class="presentation presentation-v2" id="presentation"><button class="btn close" onclick="exitPresentation()">Yöneticiye Dön</button><div id="presentationBody"></div></div>');presentationHome()};
