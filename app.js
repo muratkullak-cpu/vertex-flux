@@ -49,4 +49,92 @@ function exitPresentation(){let p=prompt('Yönetici PIN');if(p===V.data.pin)docu
 function logout(){sessionStorage.removeItem('vf_auth');login()}
 function login(){document.getElementById('app').innerHTML='<div class="login"><div class="login-ambient a"></div><div class="login-ambient b"></div><div class="loginbox"><div class="login-logo"><img src="'+VERTEX_LOGO+'" alt="Vertex Flux"></div><div class="login-copy"><div class="eyebrow">VERTEX PRIVATE CONTROL SYSTEM</div><h1>FLUX <span>2.0</span></h1></div><p class="login-sub">Merkezi yönetim sistemine güvenli giriş</p><label class="pin-label">YÖNETİCİ PIN<input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></label><button class="btn primary login-button" onclick="auth()">Sisteme Gir <span>→</span></button><div class="login-foot"><span>● Sistem çevrimiçi</span><span>SUPER ADMIN</span></div></div></div>'}
 function auth(){if(document.getElementById('pin').value===V.data.pin){sessionStorage.setItem('vf_auth','1');render()}else alert('PIN yanlış')}
-load();V.sector=sessionStorage.getItem('vf_sector')||'all';if(sessionStorage.getItem('vf_auth'))render();else login();
+
+/* ===== VERTEX CLOUD ADAPTER / SUPABASE ===== */
+const CLOUD = window.VertexCloud;
+const trStatus={aktif:'Aktif',pasif:'Pasif',arsiv:'Arşiv',bekliyor:'Bekliyor',kabul_edildi:'Kabul edildi',planlandi:'Planlandı',cekildi:'Çekildi',duzenleniyor:'Düzenleniyor',musteri_onayi:'Müşteri onayı',teslim_edildi:'Teslim edildi',odeme_bekliyor:'Ödeme bekliyor',odendi:'Ödendi'};
+function cloudErr(e){console.error(e);alert('Bulut işlemi başarısız: '+(e?.message||e))}
+async function loadCloud(){
+  const [cl,pr,qu,jo,ta,au]=await Promise.all([
+    CLOUD.from('clients').select('*').order('created_at',{ascending:false}),
+    CLOUD.from('properties').select('*').order('created_at',{ascending:false}),
+    CLOUD.from('quotes').select('*').order('created_at',{ascending:false}),
+    CLOUD.from('jobs').select('*').order('created_at',{ascending:false}),
+    CLOUD.from('tasks').select('*').order('created_at',{ascending:false}),
+    CLOUD.from('audit_logs').select('*').order('created_at',{ascending:false}).limit(50)
+  ]);
+  const bad=[cl,pr,qu,jo,ta,au].find(x=>x.error); if(bad) throw bad.error;
+  const cm=Object.fromEntries(cl.data.map(x=>[x.id,x.name]));
+  V.data=structuredClone(seed);
+  V.data.clients=cl.data.map(x=>({id:x.id,name:x.name,phone:x.phone||x.whatsapp||'',contact:x.contact_person||'',sector:x.sector,status:trStatus[x.status]||x.status,createdAt:x.created_at}));
+  V.data.properties=pr.data.map(x=>({id:x.id,clientId:x.client_id,client:cm[x.client_id]||'—',name:x.title,sqm:Number(x.sqm||0),address:x.address||'',type:x.property_type||'',floor:x.floor||'—',tour:trStatus[x.tour_status]||x.tour_status,qr:trStatus[x.qr_status]||x.qr_status,status:trStatus[x.listing_status]||x.listing_status,scans:x.scans||0,views:x.views||0}));
+  V.data.quotes=qu.data.map(x=>{let n={};try{n=JSON.parse(x.notes||'{}')}catch{} return {id:x.id,quoteNo:x.quote_no,clientId:x.client_id,client:cm[x.client_id]||'—',type:n.type||'Teklif',property:n.property||'—',sqm:n.sqm||0,service:n.service||'—',amount:Number(x.total||0),status:trStatus[x.status]||x.status,createdAt:x.created_at}});
+  V.data.jobs=jo.data.map(x=>({id:x.id,title:x.title,clientId:x.client_id,client:cm[x.client_id]||'—',sector:'emlak',status:trStatus[x.status]||x.status,date:x.scheduled_at?new Date(x.scheduled_at).toLocaleDateString('tr-TR'):'—',quoteId:x.quote_id,propertyId:x.property_id}));
+  V.data.tasks=ta.data.map(x=>({id:x.id,title:x.title,date:x.due_at?new Date(x.due_at).toLocaleString('tr-TR'):'Tarih yok',kind:'Görev',status:x.status}));
+  V.data.audit=au.data.map(x=>({at:new Date(x.created_at).toLocaleString('tr-TR'),action:x.action}));
+}
+async function auditCloud(action,entity_type='',entity_id=null){const {data:{user}}=await CLOUD.auth.getUser(); if(!user)return; await CLOUD.from('audit_logs').insert({user_id:user.id,action,entity_type,entity_id});}
+save=function(){};
+login=function(){
+ document.getElementById('app').innerHTML='<div class="login"><div class="login-ambient a"></div><div class="login-ambient b"></div><div class="loginbox"><div class="login-logo"><img src="'+VERTEX_LOGO+'" alt="Vertex Flux"></div><div class="login-copy"><div class="eyebrow">VERTEX PRIVATE CONTROL SYSTEM</div><h1>FLUX <span>2.0</span></h1></div><p class="login-sub">Merkezi bulut sistemine güvenli giriş</p><label class="pin-label">E-POSTA<input id="email" type="email" value="muratkullak@gmail.com" autocomplete="username"></label><label class="pin-label">ŞİFRE<input id="password" type="password" autocomplete="current-password" placeholder="••••••••"></label><button class="btn primary login-button" onclick="auth()">Sisteme Gir <span>→</span></button><div class="login-foot"><span>● Supabase bağlantılı</span><span>SUPER ADMIN</span></div></div></div>';
+};
+auth=async function(){
+ const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
+ if(!email||!password){alert('E-posta ve şifre gerekli.');return}
+ const {error}=await CLOUD.auth.signInWithPassword({email,password}); if(error){alert('Giriş başarısız: '+error.message);return}
+ try{await loadCloud();render()}catch(e){cloudErr(e)}
+};
+logout=async function(){await CLOUD.auth.signOut();sessionStorage.removeItem('vf_auth');login()};
+addClient=async function(){
+ let name=prompt('Emlak müşteri / ofis adı');if(!name)return;
+ let phone=prompt('Telefon / WhatsApp')||'',contact=prompt('Yetkili kişi')||'';
+ const {data:{user}}=await CLOUD.auth.getUser();
+ const {error}=await CLOUD.from('clients').insert({name,phone,whatsapp:phone,contact_person:contact,sector:'emlak',status:'aktif',created_by:user.id});
+ if(error)return cloudErr(error);await auditCloud('Emlak müşterisi eklendi: '+name,'clients');await loadCloud();render();
+};
+addProperty=async function(){
+ let em=V.data.clients.filter(x=>x.sector==='emlak');if(!em.length){alert('Önce bir Emlak müşterisi ekleyin.');go('clients');return}
+ let clientName=prompt('Müşteri / ofis adı',em[0].name);if(!clientName)return;let client=em.find(x=>x.name===clientName)||em[0];
+ let name=prompt('Mülk adı (örn. Lara 3+1)');if(!name)return;let sqm=Number(prompt('Yaklaşık m²')||0),address=prompt('Adres / bölge')||'',type=prompt('Mülk tipi (Daire, Villa, Arsa...)')||'';
+ const {data:{user}}=await CLOUD.auth.getUser();
+ const {error}=await CLOUD.from('properties').insert({client_id:client.id,title:name,sqm,address,property_type:type,listing_status:'aktif',tour_status:'bekliyor',qr_status:'bekliyor',created_by:user.id});
+ if(error)return cloudErr(error);await auditCloud('Mülk eklendi: '+name,'properties');await loadCloud();render();
+};
+addTask=async function(){
+ let title=document.getElementById('taskTitle').value,d=document.getElementById('taskDate').value;if(!title)return;
+ const {data:{user}}=await CLOUD.auth.getUser();const due=d?new Date(d).toISOString():null;
+ const {error}=await CLOUD.from('tasks').insert({title,due_at:due,status:'bekliyor',priority:'normal',created_by:user.id});
+ if(error)return cloudErr(error);await auditCloud('Görev eklendi: '+title,'tasks');await loadCloud();render();
+};
+propertyDetail=async function(id){
+ let p=V.data.properties.find(x=>x.id===id);if(!p)return;let s=prompt('Mülk durumu: aktif / satildi / kiralandi / pasif / arsiv','aktif');if(!s)return;
+ const {error}=await CLOUD.from('properties').update({listing_status:s}).eq('id',id);if(error)return cloudErr(error);await loadCloud();render();
+};
+createQuote=async function(){
+ let clientName=document.getElementById('qClient').value,client=V.data.clients.find(x=>x.name===clientName);if(!client){alert('Önce müşteri ekleyin.');return}
+ let notes={type:document.getElementById('qType').value,property:document.getElementById('qProperty').value||'Adsız mülk',sqm:Number(document.getElementById('qSqm').value||0),service:document.getElementById('qService').value};
+ let total=Number(document.getElementById('qAmount').value||0),quote_no='TKL-'+Date.now().toString(36).toUpperCase();
+ const {data:{user}}=await CLOUD.auth.getUser();
+ const {error}=await CLOUD.from('quotes').insert({quote_no,client_id:client.id,sector:'emlak',status:'taslak',currency:'TRY',subtotal:total,total,notes:JSON.stringify(notes),created_by:user.id});
+ if(error)return cloudErr(error);await auditCloud('Teklif oluşturuldu: '+quote_no,'quotes');await loadCloud();render();
+};
+acceptQuote=async function(id){
+ let q=V.data.quotes.find(x=>x.id===id);if(!q||q.status==='Kabul edildi')return;
+ const {data:{user}}=await CLOUD.auth.getUser();
+ let prop=V.data.properties.find(x=>x.clientId===q.clientId&&x.name===q.property),propertyId=prop?.id||null;
+ if(!propertyId){const ins=await CLOUD.from('properties').insert({client_id:q.clientId,title:q.property,sqm:q.sqm,listing_status:'aktif',tour_status:'bekliyor',qr_status:'bekliyor',created_by:user.id}).select('id').single();if(ins.error)return cloudErr(ins.error);propertyId=ins.data.id}
+ let up=await CLOUD.from('quotes').update({status:'kabul_edildi'}).eq('id',id);if(up.error)return cloudErr(up.error);
+ let job=await CLOUD.from('jobs').insert({client_id:q.clientId,property_id:propertyId,quote_id:id,title:q.property+' · '+q.service,status:'kabul_edildi',created_by:user.id}).select('id').single();if(job.error)return cloudErr(job.error);
+ let task=await CLOUD.from('tasks').insert({job_id:job.data.id,client_id:q.clientId,title:q.property+' planlama',status:'bekliyor',priority:'normal',created_by:user.id});if(task.error)return cloudErr(task.error);
+ await auditCloud('Teklif kabul edildi ve iş açıldı','jobs',job.data.id);await loadCloud();render();
+};
+resetDemo=function(){alert('Bulut sürümünde toplu veri silme kapalıdır. Kayıtlar güvenlik için tek tek yönetilir.')};
+backup=async function(){await loadCloud();let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(V.data,null,2)],{type:'application/json'}));a.download='vertex-flux-cloud-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click()};
+async function bootstrap(){
+ V.sector=sessionStorage.getItem('vf_sector')||'all';
+ if(!CLOUD){alert('Supabase istemcisi yüklenemedi.');return login()}
+ const {data:{session}}=await CLOUD.auth.getSession();
+ if(!session)return login();
+ try{await loadCloud();render()}catch(e){cloudErr(e);login()}
+}
+bootstrap();
