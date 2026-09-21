@@ -25,7 +25,7 @@ function nav(){return [['dashboard','Panel'],['quotes','Teklifler'],['jobs','İ�
 function layout(body,title,sub='VERTEX SUPER ADMIN'){const back=V.screen!=='dashboard'?'<button class="back-btn" onclick="goBack()" aria-label="Geri dön"><span>←</span> Geri</button>':'';return '<div class="shell"><aside class="side"><div class="brand"><div class="brand-mark"><img src="'+VERTEX_LOGO+'"></div><div><b>VERTEX</b><small>FLUX 2.0</small></div></div><div class="nav">'+nav()+'<div class="sep"></div><button onclick="presentation()">▣ <span>Müşteri Sunumu</span></button><button onclick="logout()">⇥ <span>Kilitle</span></button></div></aside><main class="main">'+back+'<div class="top"><div><div class="eyebrow">'+sub+'</div><h1>'+title+'</h1></div><div class="actions"><button class="btn" onclick="backup()">Yedek Al</button><button class="btn primary" onclick="newQuote()">+ Yeni Teklif</button></div></div>'+body+'</main></div>'}
 function sectorCards(){const a=[['emlak','EMLAK','360° Portföy Yönetimi','Mülk · 360° Tur · QR · Portföy'],['kuyum','KUYUM','Premium Ürün Deneyimi','Mücevher · Görsel · Video · Dijital Mağaza'],['otel','OTEL & TURİZM','Mekân Deneyimi','Tesis · Oda · 360° · Drone · QR']];return '<div class="sector-grid">'+a.map((c,i)=>'<button class="sector-card sector-'+c[0]+'" onclick="openSectorWorkspace(\''+c[0]+'\')"><div class="sector-visual"><div class="sector-art">'+VERTEX_SECTOR_ART[c[0]]+'</div><span class="sector-number">0'+(i+1)+'</span></div><div class="sector-copy"><span class="sector-kicker">'+c[2]+'</span><h3>'+c[1]+'</h3><p>'+c[3]+'</p><span class="sector-enter">ÇALIŞMA ALANINA GİR →</span></div></button>').join('')+'</div>'}
 function dashboard(){const d=V.data;return layout('<div class="dashboard-hero"><h2>VERTEX <span>Kontrol Merkezi</span></h2><p>Üç sektörün operasyonunu tek merkezden yönetin.</p></div><div class="grid stats"><div class="card stat"><span>Müşteri</span><strong>'+d.clients.length+'</strong></div><div class="card stat"><span>İş</span><strong>'+d.jobs.length+'</strong></div><div class="card stat"><span>Mülk</span><strong>'+d.properties.length+'</strong></div><div class="card stat"><span>Bulut</span><strong class="'+(V.cloudHealthy?'ok':'warn')+'">'+(V.cloudHealthy?'Bağlı':'Kontrol')+'</strong></div></div>'+sectorCards(),'Kontrol Merkezi')}
-function goBack(){if(V.screen==='sectorWorkspace'){V.screen='dashboard';render();return}if(['clients','properties','quotes','jobs','calendar','costs','market','gallery','health','admin'].includes(V.screen)){V.screen='sectorWorkspace';render();return}V.screen='dashboard';render()}
+function goBack(){if(V.screen==='sectorWorkspace'){V.screen='dashboard';render();return}if(['clients','properties','quotes','jobs','calendar','costs','pricing','market','gallery','health','admin'].includes(V.screen)){V.screen='sectorWorkspace';render();return}V.screen='dashboard';render()}
 function openSectorWorkspace(s){V.sector=s;V.screen='sectorWorkspace';render()}
 function sectorWorkspace(){const cfg={emlak:['EMLAK ÇALIŞMA ALANI','360° PORTFÖY YÖNETİMİ',[['Müşteriler','clients'],['Mülkler','properties'],['Teklifler','quotes'],['İşler','jobs'],['Takvim','calendar'],['Finans','costs'],['Fiyat Listesi','pricing']]],kuyum:['KUYUM ÇALIŞMA ALANI','PREMİUM ÜRÜN DENEYİMİ',[['Müşteriler','clients'],['Ürün Görselleri','gallery'],['Reklam Filmleri','gallery'],['Teklifler','quotes'],['Takvim','calendar'],['Müşteri Sunumu','presentation']]],otel:['OTEL & TURİZM ÇALIŞMA ALANI','MEKÂN DENEYİMİ',[['Müşteriler','clients'],['360° Tesis Turu','presentation'],['Drone','presentation'],['Teklifler','quotes'],['Takvim','calendar'],['Müşteri Sunumu','presentation']]]};const d=cfg[V.sector];return layout('<div class="workspace-hero workspace-'+V.sector+'"><div class="eyebrow">'+d[1]+'</div><h2>'+d[0]+'</h2><p>Bu sektöre ait müşteri, içerik, teklif ve operasyon araçları.</p><button class="btn" onclick="go(\'dashboard\')">← Kontrol Merkezine Dön</button></div><div class="workspace-grid">'+d[2].map((a,i)=>'<button class="workspace-action" onclick="'+(a[1]==='presentation'?'presentation(\''+V.sector+'\')':'go(\''+a[1]+'\')')+'"><span>0'+(i+1)+'</span><div><b>'+a[0]+'</b><small>Aç ve yönet</small></div><i>→</i></button>').join('')+'</div>',d[0],d[1])}
 function clients(){const rows=V.data.clients.filter(x=>V.sector==='emlak'?x.sector==='emlak':true).map(c=>'<div class="row"><b>'+esc(c.name)+'</b><span>'+esc((c.sector||'').toUpperCase())+'</span><span class="ok">● '+esc(TR[c.status]||c.status)+'</span><button class="btn" onclick="clientDetail(\''+c.id+'\')">Aç</button></div>').join('');return layout('<div class="card"><div class="section-title"><h2>Müşteriler</h2><button class="btn primary" onclick="addClient()">+ Müşteri Ekle</button></div><div class="list">'+(rows||'<div class="empty-state">Henüz müşteri yok.</div>')+'</div></div>','Müşteriler')}
@@ -34,12 +34,88 @@ function quotes(){const rows=V.data.quotes.map(q=>'<div class="row"><b>'+esc(q.q
 function jobs(){const steps=['kabul_edildi','planlandi','cekildi','duzenleniyor','musteri_onayi','teslim_edildi','odeme_bekliyor','odendi'];const rows=V.data.jobs.map(j=>'<div class="card"><div class="section-title"><h2>'+esc(j.title)+'</h2><span class="pill">'+esc(j.client)+'</span></div><p class="muted">'+esc(j.date)+'</p><div class="timeline">'+steps.map(s=>'<button class="step '+(j.status===s?'done':'')+'" onclick="setJobStatus(\''+j.id+'\',\''+s+'\')">'+TR[s]+'</button>').join('')+'</div></div>').join('');return layout('<div class="list">'+(rows||'<div class="empty-state">Henüz iş yok.</div>')+'</div>','İşler','TEKLİFTEN TESLİMATA')}
 function calendar(){const rows=V.data.tasks.map(t=>'<div class="row"><b>'+esc(t.date)+'</b><span>'+esc(t.title)+'</span><span class="pill">'+esc(TR[t.status]||t.status)+'</span><button class="btn" onclick="completeTask(\''+t.id+'\')">Tamamla</button></div>').join('');return layout('<div class="grid cols"><div class="card"><h2>Takvim</h2>'+(rows||'<div class="empty-state">Görev yok.</div>')+'</div><div class="card"><h2>Yeni Görev</h2><div class="form"><label>Görev<input id="taskTitle"></label><label>Tarih<input id="taskDate" type="datetime-local"></label></div><button class="btn primary" onclick="addTask()">Görev Ekle</button></div></div>','Takvim / Görevler')}
 function costs(){const p=V.data.payments,paid=p.filter(x=>x.status==='odendi').reduce((a,x)=>a+Number(x.amount||0),0),pending=p.filter(x=>x.status!=='odendi').reduce((a,x)=>a+Number(x.amount||0),0);return layout('<div class="grid stats"><div class="card stat"><span>Tahsil</span><strong>'+paid.toLocaleString('tr-TR')+' ₺</strong></div><div class="card stat"><span>Bekleyen</span><strong>'+pending.toLocaleString('tr-TR')+' ₺</strong></div></div><div class="card"><div class="section-title"><h2>Ödemeler</h2><button class="btn primary" onclick="addPayment()">+ Ödeme Ekle</button></div>'+p.map(x=>'<div class="row"><b>'+Number(x.amount).toLocaleString('tr-TR')+' ₺</b><span>'+esc(TR[x.status]||x.status)+'</span><span>'+esc(x.due_date||'—')+'</span><button class="btn" '+(x.status==='odendi'?'disabled':'onclick="markPayment(\''+x.id+'\')"')+'>Ödendi</button></div>').join('')+'</div>','Finans Merkezi','GİZLİ · SUPER ADMIN')}
+
+const PRICE_DEFAULTS={
+  tour360:{name:'360° Sanal Tur',tl:5500,usd:110},
+  photo:{name:'Profesyonel Emlak Fotoğraf Çekimi',tl:3500,usd:70},
+  drone:{name:'Drone Çekimi',tl:5500,usd:110},
+  reels:{name:'Profesyonel Reels / Kısa Tanıtım Videosu',tl:3500,usd:70},
+  qr:{name:'Akıllı QR Kod',tl:1500,usd:30},
+  mobile:{name:'Mobil Portföy / Dijital Sunum Sayfası',tl:2500,usd:50},
+  pack360photo:{name:'360° + Fotoğraf Paketi',tl:7500,usd:150},
+  pack360reels:{name:'360° + Fotoğraf + Reels Paketi',tl:9500,usd:190},
+  full:{name:'360° + Fotoğraf + Reels + Drone + QR Tam Paket',tl:13900,usd:278},
+  multi3:{name:'Çoklu Portföy · 3 Portföy',tl:34900,usd:698},
+  multi5:{name:'Çoklu Portföy · 5 Portföy',tl:49900,usd:998},
+  multi10:{name:'Çoklu Portföy · 10 Portföy',tl:84900,usd:1698},
+  membership:{name:'VERTEX 360 Üyelik · Aylık',tl:19900,usd:398}
+};
+const QuoteBuilder={selected:new Set(),meta:false,google:false,metaCfg:{objective:'messages',province:'Antalya',district:'Tümü',daily:500,days:7},googleCfg:{objective:'leads',province:'Antalya',district:'Tümü',daily:500,days:7}};
+function money(n){return Number(n||0).toLocaleString('tr-TR')+' ₺'}
+function pricingRow(key,item){
+ const on=QuoteBuilder.selected.has(key);
+ return `<button class="service-choice ${on?'selected':''}" data-price-key="${key}" onclick="togglePriceService('${key}')"><span class="service-check">${on?'✓':''}</span><span class="service-name">${item.name}</span><strong>${money(item.tl)}</strong></button>`;
+}
+function adSetupCard(kind){
+ const isMeta=kind==='meta',active=isMeta?QuoteBuilder.meta:QuoteBuilder.google;
+ const cfg=isMeta?QuoteBuilder.metaCfg:QuoteBuilder.googleCfg;
+ const title=isMeta?'Meta / Instagram Reklam Yönetimi':'Google Ads Reklam Yönetimi';
+ const objectives=isMeta?[['messages','WhatsApp / Mesaj'],['dm','Instagram DM'],['profile','Profil Ziyareti'],['engagement','Etkileşim / Beğeni'],['video','Reels / Video Görüntülenmesi'],['reach','Erişim / Gösterim'],['leads','Potansiyel Müşteri'],['sales','Satış']]:[['leads','Potansiyel Müşteri'],['traffic','Web Sitesi Trafiği'],['calls','Telefon Araması'],['sales','Satış'],['video','Video Görüntülenmesi'],['awareness','Bilinirlik / Gösterim']];
+ const media=Number(cfg.daily)*Number(cfg.days);
+ return `<div class="ad-builder ${active?'open':''}">
+  <button class="ad-builder-head" onclick="toggleAdBuilder('${kind}')"><span class="service-check">${active?'✓':''}</span><span><b>${title}</b><small>${active?'Ayarları açık · teklife dahil':'Seç ve reklam ayarlarını aç'}</small></span><i>⌄</i></button>
+  ${active?`<div class="ad-builder-body">
+   <div class="ad-status"><span>HESAP BAĞLANTISI</span><b class="warn">● Kurulum / Yetkilendirme kontrolü gerekli</b><small>Müşteri şifresi alınmaz. Hesap sahibi kendi hesabından VERTEX erişimini onaylar.</small></div>
+   <div class="ad-fields">
+    <label>Reklam hedefi<select onchange="setAdCfg('${kind}','objective',this.value)">${objectives.map(o=>`<option value="${o[0]}" ${cfg.objective===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></label>
+    <label>İl<input value="${esc(cfg.province)}" onchange="setAdCfg('${kind}','province',this.value)"></label>
+    <label>İlçe<input value="${esc(cfg.district)}" onchange="setAdCfg('${kind}','district',this.value)"></label>
+   </div>
+   <div class="slider-line"><div><b>Günlük bütçe</b><strong>${money(cfg.daily)}</strong></div><input type="range" min="100" max="5000" step="50" value="${cfg.daily}" oninput="setAdCfg('${kind}','daily',this.value)"></div>
+   <div class="slider-line"><div><b>Süre</b><strong>${cfg.days} gün</strong></div><input type="range" min="1" max="30" step="1" value="${cfg.days}" oninput="setAdCfg('${kind}','days',this.value)"></div>
+   <div class="ad-total"><span>Platform medya bütçesi</span><strong>${money(media)}</strong><small>Gösterim/sonuç tahmini yalnızca platformdan gerçek veri alınabildiğinde gösterilir.</small></div>
+  </div>`:''}
+ </div>`;
+}
+function pricingTotals(){
+ let service=0;QuoteBuilder.selected.forEach(k=>service+=Number(PRICE_DEFAULTS[k]?.tl||0));
+ const meta=QuoteBuilder.meta?Number(QuoteBuilder.metaCfg.daily)*Number(QuoteBuilder.metaCfg.days):0;
+ const google=QuoteBuilder.google?Number(QuoteBuilder.googleCfg.daily)*Number(QuoteBuilder.googleCfg.days):0;
+ return {service,meta,google,total:service+meta+google};
+}
+function pricing(){
+ const groups=[
+  ['Tekil Hizmetler',['tour360','photo','drone','reels','qr','mobile']],
+  ['Paketler',['pack360photo','pack360reels','full']],
+  ['Çoklu Portföy / Üyelik',['multi3','multi5','multi10','membership']]
+ ];
+ const t=pricingTotals();
+ const body=`<div class="pricing-hero"><div><div class="eyebrow">EMLAK · TEKLİF MOTORU</div><h2>Hizmetleri seç, teklif anında hesaplansın.</h2><p>Müşteri ekranında yalnızca TL görünür. Reklam medya bütçesi VERTEX hizmetlerinden ayrı izlenir.</p></div><div class="price-live"><small>ANLIK TOPLAM</small><strong>${money(t.total)}</strong></div></div>
+ <div class="quote-builder-grid"><section><div class="price-groups">${groups.map(g=>`<div class="price-group"><h3>${g[0]}</h3>${g[1].map(k=>pricingRow(k,PRICE_DEFAULTS[k])).join('')}</div>`).join('')}</div>
+ <div class="price-group ads-group"><h3>Reklam Yönetimi</h3>${adSetupCard('meta')}${adSetupCard('google')}</div></section>
+ <aside class="quote-summary"><div class="eyebrow">TEKLİF ÖZETİ</div><h2>${money(t.total)}</h2><div class="summary-line"><span>VERTEX hizmetleri</span><b>${money(t.service)}</b></div><div class="summary-line"><span>Meta medya bütçesi</span><b>${money(t.meta)}</b></div><div class="summary-line"><span>Google medya bütçesi</span><b>${money(t.google)}</b></div><div class="summary-total"><span>TOPLAM</span><strong>${money(t.total)}</strong></div><button class="btn primary quote-finish" onclick="finishPriceQuote()">Teklifi Tamamla →</button><button class="btn quote-reset" onclick="resetPriceQuote()">Seçimleri Temizle</button><small class="summary-note">Reklam platformu harcamaları tahmini sonuç garantisi içermez. Gerçek kampanya tahminleri platform bağlantısından alınır.</small></aside></div>`;
+ return layout(body,'Emlak Fiyatlandırma','VERTEX · AKILLI TEKLİF MOTORU');
+}
+function togglePriceService(key){if(QuoteBuilder.selected.has(key))QuoteBuilder.selected.delete(key);else QuoteBuilder.selected.add(key);render()}
+function toggleAdBuilder(kind){QuoteBuilder[kind]=!QuoteBuilder[kind];render()}
+function setAdCfg(kind,key,value){const cfg=kind==='meta'?QuoteBuilder.metaCfg:QuoteBuilder.googleCfg;cfg[key]=(key==='daily'||key==='days')?Number(value):value;render()}
+function resetPriceQuote(){QuoteBuilder.selected.clear();QuoteBuilder.meta=false;QuoteBuilder.google=false;render()}
+function finishPriceQuote(){
+ const t=pricingTotals();if(t.total<=0)return alert('En az bir hizmet seçin.');
+ const selected=[...QuoteBuilder.selected].map(k=>PRICE_DEFAULTS[k].name);
+ if(QuoteBuilder.meta)selected.push('Meta / Instagram Reklam Yönetimi');
+ if(QuoteBuilder.google)selected.push('Google Ads Reklam Yönetimi');
+ const body=`<div class="final-quote"><div class="eyebrow">MÜŞTERİ TEKLİF ÖZETİ</div><h2>${money(t.total)}</h2><p>${selected.map(x=>'✓ '+esc(x)).join('<br>')}</p><div class="final-actions"><button class="btn" onclick="closeModal()">← Geri / Düzenle</button><button class="btn primary" onclick="usePriceInQuote(${t.total})">Teklife Aktar →</button></div></div>`;
+ modal('Teklif Hazır',body);
+}
+function usePriceInQuote(total){closeModal();V.pendingQuoteTotal=Number(total);V.pendingQuoteServices=[...QuoteBuilder.selected].map(k=>PRICE_DEFAULTS[k].name);if(QuoteBuilder.meta)V.pendingQuoteServices.push('Meta / Instagram Reklam Yönetimi');if(QuoteBuilder.google)V.pendingQuoteServices.push('Google Ads Reklam Yönetimi');V.screen='quotes';render();setTimeout(()=>{const a=document.getElementById('qAmount'),s=document.getElementById('qService');if(a)a.value=V.pendingQuoteTotal;if(s){s.innerHTML='<option>'+esc(V.pendingQuoteServices.join(' + '))+'</option>'}},0)}
+
 function market(){return layout('<div class="card"><h2>Piyasa Araştırması</h2><p class="muted">Doğrulanmış güncel veri eklenmeden sistem fiyat veya rakip bilgisi üretmez.</p></div>','Piyasa','SADECE SUPER ADMIN')}
 function gallery(){return layout('<div class="card"><h2>Müşteri Sunum Galerisi</h2><p class="muted">Emlak, Kuyum ve Otel hizmetlerini tam ekran müşteri sunumunda inceleyin.</p><button class="btn primary" onclick="presentation(\''+V.sector+'\')">Sunumu Aç</button></div>','Örnek Galeri')}
 function health(){return layout('<div class="card"><div class="section-title"><h2>Canlı Bağlantı Kontrolü</h2><button class="btn primary" onclick="healthCheck()">Şimdi Kontrol Et</button></div><p class="muted">Oturum ve tüm ana veri tabloları test edilir.</p><div class="notice">'+(V.cloudHealthy?'Supabase bağlantısı son yüklemede başarılı.':'Kontrol bekleniyor.')+'</div></div>','Sistem Sağlığı')}
 function admin(){return layout('<div class="grid cols"><div class="card"><h2>Bulut Yönetimi</h2><p class="muted">Supabase Auth, RLS ve merkezi veri katmanı aktif.</p><button class="btn primary" onclick="healthCheck()">Bağlantıları Test Et</button></div><div class="card"><h2>İşlem Geçmişi</h2>'+V.data.audit.slice(0,12).map(a=>'<div><small class="muted">'+esc(a.at)+'</small><br>'+esc(a.action)+'</div>').join('')+'</div></div>','Uzaktan Yönetim','SUPER ADMIN')}
 function go(s){V.screen=s;render()} function newQuote(){go('quotes')}
-function render(){const f={dashboard,sectorWorkspace,clients,properties,quotes,jobs,calendar,costs,market,gallery,health,admin};document.getElementById('app').innerHTML=(f[V.screen]||dashboard)()}
+function render(){const f={dashboard,sectorWorkspace,clients,properties,quotes,jobs,calendar,costs,pricing,market,gallery,health,admin};document.getElementById('app').innerHTML=(f[V.screen]||dashboard)()}
 function modal(title,body,actions=''){document.getElementById('vfModal')?.remove();document.body.insertAdjacentHTML('beforeend','<div class="vf-modal" id="vfModal" onclick="if(event.target===this)closeModal()"><div class="vf-modal-card"><div class="vf-modal-head"><h2>'+title+'</h2><button onclick="closeModal()">×</button></div>'+body+'<div class="vf-modal-actions">'+actions+'</div></div></div>')} function closeModal(){document.getElementById('vfModal')?.remove()}
 function addClient(){modal('Yeni Müşteri','<div class="form"><label>Müşteri adı<input id="mcName"></label><label>Yetkili<input id="mcContact"></label><label>Telefon<input id="mcPhone"></label><label>Sektör<select id="mcSector"><option value="emlak">Emlak</option><option value="kuyum">Kuyum</option><option value="otel">Otel</option></select></label></div>','<button class="btn" onclick="closeModal()">Vazgeç</button><button class="btn primary" onclick="saveClientModal()">Kaydet</button>')}
 async function saveClientModal(){const name=val('mcName');if(!name)return alert('Müşteri adı gerekli.');const {data:{user}}=await CLOUD.auth.getUser();const {error}=await CLOUD.from('clients').insert({name,contact_person:val('mcContact'),phone:val('mcPhone'),whatsapp:val('mcPhone'),sector:val('mcSector'),status:'aktif',created_by:user.id});if(error)return cloudErr(error);await audit('Müşteri eklendi: '+name,'clients');closeModal();await refresh()}
