@@ -7,16 +7,17 @@ const val=id=>document.getElementById(id)?.value?.trim()||'';
 function cloudErr(e){console.error(e);alert('İşlem tamamlanamadı: '+(e?.message||e))}
 async function audit(action,entity='',entityId=null){try{const {data:{user}}=await CLOUD.auth.getUser();if(user)await CLOUD.from('audit_logs').insert({user_id:user.id,action,entity_type:entity,entity_id:entityId})}catch(e){console.warn(e)}}
 async function loadCloud(){
- const names=['clients','properties','quotes','jobs','tasks','payments','audit_logs','pricing_settings'];
+ const names=['clients','properties','quotes','jobs','tasks','payments','audit_logs'];
  const r=await Promise.all(names.map(n=>CLOUD.from(n).select('*').order('created_at',{ascending:false}).limit(n==='audit_logs'?50:500)));
  const bad=r.find(x=>x.error);if(bad)throw bad.error;
- const [cl,pr,qu,jo,ta,pa,au,ps]=r.map(x=>x.data||[]), cm=Object.fromEntries(cl.map(x=>[x.id,x.name]));
+ const [cl,pr,qu,jo,ta,pa,au]=r.map(x=>x.data||[]), cm=Object.fromEntries(cl.map(x=>[x.id,x.name]));
  V.data.clients=cl.map(x=>({...x,contact:x.contact_person}));
  V.data.properties=pr.map(x=>({...x,name:x.title,client:cm[x.client_id]||'—',type:x.property_type,tour:TR[x.tour_status]||x.tour_status,qr:TR[x.qr_status]||x.qr_status,status:TR[x.listing_status]||x.listing_status}));
  V.data.quotes=qu.map(x=>({...x,client:cm[x.client_id]||'—',amount:x.total,property:x.notes||x.quote_no||'Teklif'}));
  V.data.jobs=jo.map(x=>({...x,client:cm[x.client_id]||'—',date:x.scheduled_at?new Date(x.scheduled_at).toLocaleString('tr-TR'):'Planlanmadı'}));
  V.data.tasks=ta.map(x=>({...x,date:x.due_at?new Date(x.due_at).toLocaleString('tr-TR'):'Tarih yok'}));
- V.data.payments=pa;V.data.pricing=ps;V.data.audit=au.map(x=>({at:new Date(x.created_at).toLocaleString('tr-TR'),action:x.action}));
+ V.data.payments=pa;V.data.audit=au.map(x=>({at:new Date(x.created_at).toLocaleString('tr-TR'),action:x.action}));
+ try{const {data:ps,error:pe}=await CLOUD.from('pricing_settings').select('*');if(!pe)V.data.pricing=ps||[];else console.warn('Pricing settings unavailable',pe)}catch(e){console.warn('Pricing settings load failed',e)}
  V.cloudHealthy=true;
 }
 const icons={dashboard:'⌂',quotes:'▤',jobs:'✓',calendar:'▦',clients:'●',properties:'⌂',market:'▥',gallery:'▣',costs:'₺',pricing:'
