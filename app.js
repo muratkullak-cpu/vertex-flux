@@ -178,3 +178,12 @@ async function bootstrap(){
  }catch(e){console.error('BOOTSTRAP',e);login()}
 }
 bootstrap();
+/* DOM hygiene: remove accidental escaped-newline text nodes from deployment output */
+(function vertexDomHygiene(){
+ const clean=()=>{
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  const bad=[]; while(w.nextNode()){const n=w.currentNode;if(/^\\\\n(?:\\\\n)*$/.test((n.nodeValue||'').trim()))bad.push(n)}
+  bad.forEach(n=>n.remove());
+ };
+ clean(); new MutationObserver(clean).observe(document.body,{childList:true,subtree:true});
+})();
