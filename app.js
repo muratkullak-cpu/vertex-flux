@@ -93,11 +93,12 @@ async function loadCloud(){
 async function auditCloud(action,entity_type='',entity_id=null){const {data:{user}}=await CLOUD.auth.getUser(); if(!user)return; await CLOUD.from('audit_logs').insert({user_id:user.id,action,entity_type,entity_id});}
 save=function(){};
 login=function(){
- document.getElementById('app').innerHTML='<div class="login"><div class="login-ambient a"></div><div class="login-ambient b"></div><div class="loginbox"><div class="login-logo"><img src="'+VERTEX_LOGO+'" alt="Vertex Flux"></div><div class="login-copy"><div class="eyebrow">VERTEX PRIVATE CONTROL SYSTEM</div><h1>FLUX <span>2.0</span></h1></div><p class="login-sub">Merkezi bulut sistemine güvenli giriş</p><label class="pin-label">E-POSTA<input id="email" type="email" value="muratkullak@gmail.com" autocomplete="username"></label><label class="pin-label">ŞİFRE<input id="password" type="password" autocomplete="current-password" placeholder="••••••••"></label><button class="btn primary login-button" onclick="auth()">Sisteme Gir <span>→</span></button><div class="login-foot"><span>● Supabase bağlantılı</span><span>SUPER ADMIN</span></div></div></div>';
+ document.getElementById('app').innerHTML='<div class="login"><div class="login-ambient a"></div><div class="login-ambient b"></div><div class="loginbox"><div class="login-logo"><img src="'+VERTEX_LOGO+'" alt="Vertex Flux"></div><div class="login-copy"><div class="eyebrow">VERTEX PRIVATE CONTROL SYSTEM</div><h1>FLUX <span>2.0</span></h1></div><p class="login-sub">SUPER ADMIN · Güvenli bulut girişi</p><label class="pin-label">YÖNETİCİ ŞİFRESİ<div class="password-wrap"><input id="password" type="password" autocomplete="current-password" placeholder="Şifrenizi girin"><button type="button" class="password-toggle" onclick="togglePassword()">Göster</button></div></label><button class="btn primary login-button" onclick="auth()">Sisteme Gir <span>→</span></button><div class="login-foot"><span>● Güvenli bağlantı</span><span>VERTEX CLOUD</span></div></div></div>';
 };
+function togglePassword(){const p=document.getElementById('password'),b=document.querySelector('.password-toggle');if(!p)return;const show=p.type==='password';p.type=show?'text':'password';if(b)b.textContent=show?'Gizle':'Göster'}
 auth=async function(){
- const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
- if(!email||!password){alert('E-posta ve şifre gerekli.');return}
+ const email='muratkullak@gmail.com',password=document.getElementById('password').value;
+ if(!password){alert('Şifrenizi girin.');return}
  const {error}=await CLOUD.auth.signInWithPassword({email,password}); if(error){alert('Giriş başarısız: '+error.message);return}
  try{await loadCloud();render()}catch(e){cloudErr(e)}
 };
