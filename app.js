@@ -1,4 +1,4 @@
-const V={screen:'dashboard',sector:'emlak',data:{clients:[],properties:[],quotes:[],jobs:[],tasks:[],payments:[],audit:[]},cloudHealthy:false};
+const V={screen:'dashboard',sector:'emlak',data:{clients:[],properties:[],quotes:[],jobs:[],tasks:[],payments:[],audit:[],pricing:[]},cloudHealthy:false};
 const CLOUD=window.VertexCloud;
 
 const TR={aktif:'Aktif',pasif:'Pasif',arsiv:'Arşiv',bekliyor:'Bekliyor',kabul_edildi:'Kabul edildi',planlandi:'Planlandı',cekildi:'Çekildi',duzenleniyor:'Düzenleniyor',musteri_onayi:'Müşteri onayı',teslim_edildi:'Teslim edildi',odeme_bekliyor:'Ödeme bekliyor',odendi:'Ödendi',tamamlandi:'Tamamlandı'};
