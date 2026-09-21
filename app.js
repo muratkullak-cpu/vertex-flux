@@ -215,3 +215,39 @@ function presentationServices(type){
 function presentationHome(){const p=document.getElementById('presentationBody');if(!p)return;p.innerHTML='<div class="presentation-home"><div class="presentation-logo"><img src="'+VERTEX_LOGO+'" alt="Vertex Flux"></div><div class="eyebrow">VERTEX FLUX · DIGITAL EXPERIENCE</div><h1>İşinizi <span>dijital deneyime</span> dönüştürün.</h1><p>Sunmak istediğiniz sektörü seçin.</p><div class="presentation-sector-grid"><button onclick="presentationOpen(\'emlak\')"><b>EMLAK</b><span>360° · Drone · Reels · QR</span></button><button onclick="presentationOpen(\'kuyum\')"><b>KUYUM</b><span>Görsel · Film · Sosyal · Vitrin</span></button><button onclick="presentationOpen(\'otel\')"><b>OTEL & TURİZM</b><span>360° · Oda · Drone · QR</span></button></div></div>'}
 function presentationOpen(type){const p=document.getElementById('presentationBody');if(p)p.innerHTML=presentationServices(type)}
 presentation=function(){document.body.insertAdjacentHTML('beforeend','<div class="presentation presentation-v2" id="presentation"><button class="btn close" onclick="exitPresentation()">Yöneticiye Dön</button><div id="presentationBody"></div></div>');presentationHome()};
+
+/* ===== VERTEX CUSTOMER PRESENTATION DETAIL LAYER ===== */
+const VERTEX_PRESENTATION_DETAIL={
+ emlak:{
+  '360° SANAL TUR':{tag:'360',title:'360° Sanal Tur',lead:'Müşteri ilanı sadece görmez; mülkün içinde dolaşır.',points:['Telefon, tablet ve bilgisayarda çalışır','Oda oda gezilebilir portföy deneyimi','İlan, web sitesi ve QR ile paylaşım','Satılan/kiralanan portföy geçmişi korunur'],demo:'PANORAMİK PORTFÖY'},
+  'DRONE':{tag:'DRN',title:'Drone Çekimi',lead:'Mülkün konumunu, çevresini ve mimarisini tek bakışta anlatır.',points:['Dış cephe ve çevre anlatımı','Sinematik yükseliş ve yaklaşma planları','Dikey Reels ve yatay sunuma uygun kurgu','360° turla aynı portföy altında sunum'],demo:'HAVADAN HİKÂYE'},
+  'REELS':{tag:'RLS',title:'Portföy Reels',lead:'İlk saniyelerde dikkat çeken dikey emlak videosu.',points:['9:16 sosyal medya formatı','Hızlı portföy özeti ve güçlü açılış','Marka/iletişim alanları','Instagram ve WhatsApp paylaşımına hazır'],demo:'DİKEY VİDEO'},
+  'AKILLI QR':{tag:'QR',title:'Akıllı QR',lead:'Tek kodu değiştirmeden müşteriyi doğru dijital hedefe yönlendirin.',points:['360° tur veya ilan bağlantısı','WhatsApp ve Instagram yönlendirmesi','Google değerlendirme / harita hedefi','Hedef bağlantı sonradan değiştirilebilir'],demo:'TEK KOD · ÇOK HEDEF'}
+ },
+ kuyum:{
+  'ÜRÜN GÖRSELİ':{tag:'GEM',title:'Premium Ürün Görseli',lead:'Mücevherin taşını, işçiliğini ve ışığını satış odaklı gösterin.',points:['Ürün formunu bozmadan premium sahne','Katalog ve sosyal medya uyumu','Kampanya konseptlerine göre farklı arka plan','Yüzük, kolye, bilezik ve küpe için tutarlı seri'],demo:'ÜRÜNÜ ÖNE ÇIKAR'},
+  'REKLAM FİLMİ':{tag:'FILM',title:'Sinematik Reklam Filmi',lead:'Ürünü kısa bir marka hikâyesine dönüştüren reklam deneyimi.',points:['Dikey reklam filmi kurgusu','Sinematik yakın plan ve yavaş hareket','Türkçe anlatım / metin seçeneği','Müzik ve marka kapanışı'],demo:'IŞIK · HAREKET · HİKÂYE'},
+  'SOSYAL MEDYA':{tag:'SOC',title:'Sosyal Medya Paketi',lead:'Her paylaşımda aynı premium marka dilini koruyun.',points:['Reels, Story ve gönderi formatları','Kampanya ve özel gün tasarımları','Telefon / adres / CTA standardı','Seri üretime uygun görsel şablon sistemi'],demo:'TUTARLI MARKA DİLİ'},
+  'DİJİTAL VİTRİN':{tag:'WEB',title:'Dijital Vitrin',lead:'Müşteri mağazaya gelmeden koleksiyonu premium biçimde keşfeder.',points:['Mobil öncelikli koleksiyon sunumu','Kategori ve ürün hikâyeleri','WhatsApp iletişim yönlendirmesi','QR ile fiziksel mağazadan dijitale geçiş'],demo:'KOLEKSİYON DENEYİMİ'}
+ },
+ otel:{
+  '360° TESİS TURU':{tag:'360',title:'360° Tesis Turu',lead:'Misafir rezervasyondan önce odaları ve tesisi gerçekten keşfeder.',points:['Oda ve ortak alanlar arasında geçiş','Telefon ve tarayıcıda kullanım','Web sitesi ve QR entegrasyonu','Tesis içi alanların tek deneyimde sunumu'],demo:'TESİSİ GEZDİR'},
+  'ODA SUNUMU':{tag:'ROOM',title:'Oda Sunumu',lead:'Oda tipleri arasındaki farkı net ve premium biçimde gösterin.',points:['Oda tipi bazlı görsel anlatım','Öne çıkan özelliklerin kısa sunumu','Mobil rezervasyon akışına uygun','Sosyal medya içerikleriyle uyumlu'],demo:'ODAYI DENEYİMLE'},
+  'DRONE':{tag:'DRN',title:'Tesis Drone Çekimi',lead:'Konumu, sahili, havuzu ve çevreyi tek sinematik anlatıda birleştirin.',points:['Tesis ve çevre ilişkisi','Sinematik dış mekân görüntüleri','Reels ve tanıtım filmi kullanımı','Sezon kampanyalarına uygun kurgu'],demo:'TESİSİ YUKARIDAN ANLAT'},
+  'AKILLI QR':{tag:'QR',title:'Otel Akıllı QR',lead:'Misafirin ihtiyaç duyduğu dijital hedefleri tek kod sisteminde toplayın.',points:['Menü ve tesis bilgileri','Harita / konum / iletişim','Değerlendirme yönlendirmesi','Hedefi sonradan değiştirebilme'],demo:'MİSAFİRİN KISAYOLU'}
+ }
+};
+function presentationDetail(type,key){
+ const d=VERTEX_PRESENTATION_DETAIL[type]?.[key];if(!d)return;
+ const p=document.getElementById('presentationBody');if(!p)return;
+ p.innerHTML='<div class="presentation-detail"><button class="presentation-back" onclick="presentationOpen(\''+type+'\')">← Hizmetler</button><div class="detail-hero detail-'+type+'"><div><div class="eyebrow">VERTEX · '+d.tag+'</div><h1>'+d.title+'</h1><p>'+d.lead+'</p></div><div class="detail-device"><div class="detail-screen"><span>'+d.tag+'</span><b>'+d.demo+'</b><i>VERTEX DIGITAL EXPERIENCE</i></div></div></div><div class="detail-grid">'+d.points.map((x,i)=>'<div class="detail-point"><span>0'+(i+1)+'</span><b>'+x+'</b></div>').join('')+'</div><div class="detail-footer"><b>VERTEX</b><span>Bu hizmet müşterinin marka kimliği ve projesine göre özelleştirilir.</span></div></div>';
+}
+presentationServices=function(type){
+ const data={
+  emlak:{title:'EMLAK',sub:'Portföyü gösterme biçimini değiştirin.',items:[['360° SANAL TUR','Mülkü telefondan ve tarayıcıdan oda oda keşfetme deneyimi.','360'],['DRONE','Konum, çevre ve mimariyi sinematik hava görüntüleriyle anlatın.','DRN'],['REELS','Dikey, hızlı ve paylaşılabilir portföy videoları.','RLS'],['AKILLI QR','İlan, tur, WhatsApp ve Google hedeflerini tek dokunuşla açın.','QR']]},
+  kuyum:{title:'KUYUM',sub:'Mücevheri dijital vitrinde premium sunun.',items:[['ÜRÜN GÖRSELİ','Detay ve işçiliği öne çıkaran premium ürün sunumu.','GEM'],['REKLAM FİLMİ','Kısa, sinematik ve marka odaklı ürün hikâyeleri.','FILM'],['SOSYAL MEDYA','Tutarlı görsel dilde kampanya ve ürün içerikleri.','SOC'],['DİJİTAL VİTRİN','Müşterinin telefondan keşfedebileceği modern katalog deneyimi.','WEB']]},
+  otel:{title:'OTEL & TURİZM',sub:'Tesisi rezervasyondan önce deneyimletin.',items:[['360° TESİS TURU','Oda ve ortak alanları tarayıcıdan gezilebilir hale getirin.','360'],['ODA SUNUMU','Oda tiplerini güçlü görsel hikâyelerle karşılaştırın.','ROOM'],['DRONE','Tesisin konumunu ve çevresini yukarıdan gösterin.','DRN'],['AKILLI QR','Oda, menü, harita ve iletişim hedeflerini bağlayın.','QR']]}
+ };
+ const d=data[type]||data.emlak;
+ return '<div class="presentation-stage"><button class="presentation-back" onclick="presentationHome()">← Sektörler</button><div class="presentation-head"><div class="eyebrow">VERTEX DIGITAL EXPERIENCE</div><h1>'+d.title+'</h1><p>'+d.sub+'</p></div><div class="presentation-services">'+d.items.map((x,i)=>'<button class="presentation-service presentation-service-button" onclick="presentationDetail(\''+type+'\',\''+x[0]+'\')"><div class="presentation-visual pv-'+type+'"><span>'+x[2]+'</span><i>0'+(i+1)+'</i></div><div class="presentation-service-copy"><b>'+x[0]+'</b><p>'+x[1]+'</p><em>İNCELE →</em></div></button>').join('')+'</div></div>';
+};
