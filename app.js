@@ -1,5 +1,6 @@
 const V={screen:'dashboard',sector:'emlak',data:{clients:[],properties:[],quotes:[],jobs:[],tasks:[],payments:[],audit:[]},cloudHealthy:false};
 const CLOUD=window.VertexCloud;
+const VERTEX_SECTOR_ART=window.VERTEX_SECTOR_ART||{emlak:'<span class="sector-fallback">360°</span>',kuyum:'<span class="sector-fallback">GEM</span>',otel:'<span class="sector-fallback">360°</span>'};
 const TR={aktif:'Aktif',pasif:'Pasif',arsiv:'Arşiv',bekliyor:'Bekliyor',kabul_edildi:'Kabul edildi',planlandi:'Planlandı',cekildi:'Çekildi',duzenleniyor:'Düzenleniyor',musteri_onayi:'Müşteri onayı',teslim_edildi:'Teslim edildi',odeme_bekliyor:'Ödeme bekliyor',odendi:'Ödendi',tamamlandi:'Tamamlandı'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const val=id=>document.getElementById(id)?.value?.trim()||'';
