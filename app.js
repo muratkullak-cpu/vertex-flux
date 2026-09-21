@@ -39,7 +39,24 @@ function uid(p){return p+'-'+Date.now().toString(36).toUpperCase()}
 function addClient(){let name=prompt('Emlak müşteri / ofis adı');if(!name)return;let phone=prompt('Telefon / WhatsApp')||'';let contact=prompt('Yetkili kişi')||'';V.data.clients.unshift({id:Date.now(),name,phone,contact,sector:'emlak',status:'Aktif',createdAt:new Date().toISOString()});save('Emlak müşterisi eklendi: '+name);render()}
 function addProperty(){let em=V.data.clients.filter(x=>x.sector==='emlak');if(!em.length){alert('Önce bir Emlak müşterisi ekleyin.');go('clients');return}let client=prompt('Müşteri / ofis adı',em[0].name);if(!client)return;let name=prompt('Mülk adı (örn. Lara 3+1)');if(!name)return;let sqm=Number(prompt('Yaklaşık m²')||0);let address=prompt('Adres / bölge')||'';let type=prompt('Mülk tipi (Daire, Villa, Arsa...)')||'';V.data.properties.unshift({id:Date.now(),client,name,sqm,address,type,floor:'—',tour:'Bekliyor',qr:'Bekliyor',status:'Aktif',scans:0,views:0,createdAt:new Date().toISOString()});save('Mülk eklendi: '+name);render()}
 function propertyDetail(id){let p=V.data.properties.find(x=>x.id===id);if(!p)return;let s=prompt('Mülk durumu',p.status||'Aktif');if(s){p.status=s;save('Mülk durumu güncellendi: '+p.name+' → '+s);render()}}
-function clientDetail(id){let c=V.data.clients.find(x=>x.id===id);if(!c)return;let pc=V.data.properties.filter(x=>x.client===c.name).length,jc=V.data.jobs.filter(x=>x.client===c.name).length;alert(c.name+'\nMülk: '+pc+'\nİş: '+jc+'\nDurum: '+c.status)}
+async function clientDetail(id){
+ const c=V.data.clients.find(x=>x.id===id);if(!c)return;
+ const pc=V.data.properties.filter(x=>x.clientId===c.id).length,jc=V.data.jobs.filter(x=>x.clientId===c.id).length;
+ const choice=prompt(c.name+'\\nMülk: '+pc+' · İş: '+jc+'\\n\\n1 = Düzenle\\n2 = Sil\\n0 = Kapat','0');
+ if(choice==='1'){
+   const name=prompt('Müşteri / ofis adı',c.name);if(!name)return;
+   const phone=prompt('Telefon / WhatsApp',c.phone||'')??c.phone;
+   const contact=prompt('Yetkili kişi',c.contact||'')??c.contact;
+   const {error}=await CLOUD.from('clients').update({name,phone,whatsapp:phone,contact_person:contact}).eq('id',id);
+   if(error)return cloudErr(error);await auditCloud('Müşteri güncellendi: '+name,'clients',id);await loadCloud();render();return;
+ }
+ if(choice==='2'){
+   if(pc||jc){alert('Bu müşteriye bağlı mülk veya iş var. Önce bağlı kayıtları kaldırmalısın.');return}
+   if(!confirm(c.name+' kalıcı olarak silinsin mi?'))return;
+   const {error}=await CLOUD.from('clients').delete().eq('id',id);
+   if(error)return cloudErr(error);await auditCloud('Müşteri silindi: '+c.name,'clients',id);await loadCloud();render();
+ }
+}
 function createQuote(){V.data.quotes=V.data.quotes||[];let q={id:uid('TKL'),client:document.getElementById('qClient').value,type:document.getElementById('qType').value,property:document.getElementById('qProperty').value||'Adsız mülk',sqm:Number(document.getElementById('qSqm').value||0),service:document.getElementById('qService').value,amount:Number(document.getElementById('qAmount').value||0),status:'Bekliyor',createdAt:new Date().toISOString()};V.data.quotes.unshift(q);save('Teklif oluşturuldu: '+q.id);render()}
 function acceptQuote(id){let q=V.data.quotes.find(x=>x.id===id);if(!q||q.status==='Kabul edildi')return;q.status='Kabul edildi';let prop=V.data.properties.find(x=>x.client===q.client&&x.name===q.property);if(!prop){prop={id:Date.now(),client:q.client,name:q.property,sqm:q.sqm,floor:'—',tour:'Bekliyor',qr:'Bekliyor',status:'Aktif',scans:0,views:0};V.data.properties.unshift(prop)}let jid=uid('VF');V.data.jobs.unshift({id:jid,title:q.property+' · '+q.service,client:q.client,sector:'emlak',status:'Kabul edildi',date:new Date().toLocaleDateString('tr-TR'),quoteId:q.id,propertyId:prop.id});V.data.tasks.unshift({title:q.property+' planlama',date:'Tarih belirlenecek',kind:'Çekim'});save('Teklif kabul edildi ve iş açıldı: '+jid);render()}
 function resetDemo(){if(confirm('Bu tarayıcıdaki mevcut VERTEX verileri temizlensin mi?')){V.data=structuredClone(seed);localStorage.setItem(V.key,JSON.stringify(V.data));V.screen='dashboard';render()}}
