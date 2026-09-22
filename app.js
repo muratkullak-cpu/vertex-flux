@@ -126,5 +126,15 @@ async function forgotPassword(){const email=val('email');if(!email)return alert(
 function recoveryScreen(){document.getElementById('app').innerHTML='<div class="login"><div class="loginbox"><div class="login-logo"><img src="'+VERTEX_LOGO+'"></div><div class="eyebrow">ŞİFRE YENİLEME</div><h1>Yeni şifre</h1><label class="pin-label">YENİ ŞİFRE<input id="newPassword" type="password" minlength="8"></label><button class="btn primary login-button" onclick="setNewPassword()">Şifreyi Güncelle →</button></div></div>'}
 async function setNewPassword(){const password=val('newPassword');if(password.length<8)return alert('Şifre en az 8 karakter olmalı.');const {error}=await CLOUD.auth.updateUser({password});if(error)return cloudErr(error);history.replaceState({},'',location.pathname);await refresh()}
 async function refresh(){try{await loadCloud();render()}catch(e){cloudErr(e)}}
-async function bootstrap(){try{if(!CLOUD)return login();CLOUD.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT')login();if(event==='PASSWORD_RECOVERY')setTimeout(recoveryScreen,0)});const {data:{session},error}=await CLOUD.auth.getSession();if(error)throw error;if(location.hash.includes('type=recovery')&&session)return recoveryScreen();if(!session)return login();await refresh()}catch(e){console.error('VERTEX bootstrap error',e);login()}}
+async function finalizeGoogleOAuth(session){
+  const q=new URLSearchParams(location.search);
+  if(q.get('google')!=='finalize'||!session?.access_token)return;
+  try{
+    const r=await fetch('/api/google/finalize',{method:'POST',headers:{Authorization:'Bearer '+session.access_token}});
+    const data=await r.json().catch(()=>({}));
+    history.replaceState({},'',location.pathname+(r.ok?'?google=connected':'?google=error'));
+    if(!r.ok)console.error('Google Ads finalize failed',data);
+  }catch(e){console.error('Google Ads finalize failed',e);history.replaceState({},'',location.pathname+'?google=error')}
+}
+async function bootstrap(){try{if(!CLOUD)return login();CLOUD.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT')login();if(event==='PASSWORD_RECOVERY')setTimeout(recoveryScreen,0)});const {data:{session},error}=await CLOUD.auth.getSession();if(error)throw error;if(location.hash.includes('type=recovery')&&session)return recoveryScreen();if(!session)return login();await finalizeGoogleOAuth(session);await refresh()}catch(e){console.error('VERTEX bootstrap error',e);login()}}
 bootstrap();
