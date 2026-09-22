@@ -158,6 +158,15 @@ async function finalizeGoogleOAuth(session){
     if(!r.ok)console.error('Google Ads finalize failed',data);
   }catch(e){console.error('Google Ads finalize failed',e);history.replaceState({},'',location.pathname+'?google=error')}
 }
+async function connectMeta(){location.href='/api/meta/connect'}
+async function metaConnectionStatus(){
+ try{
+  const {data:{session}}=await CLOUD.auth.getSession();
+  if(!session?.access_token)return {connected:false};
+  const r=await fetch('/api/meta/status',{headers:{Authorization:'Bearer '+session.access_token}});
+  return await r.json();
+ }catch(e){console.error('Meta status',e);return {connected:false,error:e.message}}
+}
 async function finalizeMetaOAuth(session){
   const q=new URLSearchParams(location.search);
   if(q.get('meta')!=='finalize'||!session?.access_token)return;
