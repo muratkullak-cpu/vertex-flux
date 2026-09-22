@@ -3,7 +3,7 @@ module.exports=async function handler(req,res){
  const {code,state,error,error_description}=req.query||{};
  if(error)return res.status(400).send('Meta bağlantısı reddedildi: '+String(error_description||error));
  if(!code||!state||state!==cookie(req,'vertex_meta_state'))return res.status(400).send('Geçersiz OAuth isteği.');
- const appId=process.env.META_APP_ID, secret=process.env.META_APP_SECRET;
+ const appId='2496301514201043', secret=process.env.META_APP_SECRET;
  if(!appId||!secret)return res.status(500).send('Meta OAuth ortam değişkenleri eksik.');
  const redirect='https://vertex-flux.vercel.app/api/meta/callback';
  const q=new URLSearchParams({client_id:appId,client_secret:secret,redirect_uri:redirect,code});
