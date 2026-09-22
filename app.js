@@ -126,6 +126,13 @@ async function forgotPassword(){const email=val('email');if(!email)return alert(
 function recoveryScreen(){document.getElementById('app').innerHTML='<div class="login"><div class="loginbox"><div class="login-logo"><img src="'+VERTEX_LOGO+'"></div><div class="eyebrow">ŞİFRE YENİLEME</div><h1>Yeni şifre</h1><label class="pin-label">YENİ ŞİFRE<input id="newPassword" type="password" minlength="8"></label><button class="btn primary login-button" onclick="setNewPassword()">Şifreyi Güncelle →</button></div></div>'}
 async function setNewPassword(){const password=val('newPassword');if(password.length<8)return alert('Şifre en az 8 karakter olmalı.');const {error}=await CLOUD.auth.updateUser({password});if(error)return cloudErr(error);history.replaceState({},'',location.pathname);await refresh()}
 async function refresh(){try{await loadCloud();render()}catch(e){cloudErr(e)}}
+async function googleAdsStatus(){
+  try{
+    const {data,error}=await CLOUD.rpc('vertex_google_ads_connection_status');
+    if(error)throw error;
+    return data&&data[0]?data[0]:{connected:false};
+  }catch(e){console.error('Google Ads status',e);return {connected:false}}
+}
 async function finalizeGoogleOAuth(session){
   const q=new URLSearchParams(location.search);
   if(q.get('google')!=='finalize'||!session?.access_token)return;
