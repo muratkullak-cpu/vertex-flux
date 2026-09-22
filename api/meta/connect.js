@@ -1,6 +1,6 @@
 const crypto=require('crypto');
 module.exports=async function handler(req,res){
- const appId=process.env.META_APP_ID;
+ const appId='2496301514201043';
  if(!appId)return res.status(500).send('META_APP_ID eksik.');
  const state=crypto.randomBytes(24).toString('hex');
  const redirect='https://vertex-flux.vercel.app/api/meta/callback';
