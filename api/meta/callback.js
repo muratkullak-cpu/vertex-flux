@@ -19,8 +19,8 @@ module.exports=async function handler(req,res){
  const md=await me.json().catch(()=>({}));
  res.setHeader('Set-Cookie',[
   'vertex_meta_state=; Path=/api/meta/callback; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-  `vertex_meta_handoff=${encodeURIComponent(persistentToken)}; Path=/api/meta/finalize; HttpOnly; Secure; SameSite=Strict; Max-Age=120`,
-  `vertex_meta_uid=${encodeURIComponent(md.id||'')}; Path=/api/meta/finalize; HttpOnly; Secure; SameSite=Strict; Max-Age=120`
+  `vertex_meta_handoff=${encodeURIComponent(persistentToken)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
+  `vertex_meta_uid=${encodeURIComponent(md.id||'')}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`
  ]);
  return res.redirect('/?meta=finalize');
 };
