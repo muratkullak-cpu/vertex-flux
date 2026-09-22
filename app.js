@@ -158,5 +158,15 @@ async function finalizeGoogleOAuth(session){
     if(!r.ok)console.error('Google Ads finalize failed',data);
   }catch(e){console.error('Google Ads finalize failed',e);history.replaceState({},'',location.pathname+'?google=error')}
 }
-async function bootstrap(){try{if(!CLOUD)return login();CLOUD.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT')login();if(event==='PASSWORD_RECOVERY')setTimeout(recoveryScreen,0)});const {data:{session},error}=await CLOUD.auth.getSession();if(error)throw error;if(location.hash.includes('type=recovery')&&session)return recoveryScreen();if(!session)return login();await finalizeGoogleOAuth(session);await refresh()}catch(e){console.error('VERTEX bootstrap error',e);login()}}
+async function finalizeMetaOAuth(session){
+  const q=new URLSearchParams(location.search);
+  if(q.get('meta')!=='finalize'||!session?.access_token)return;
+  try{
+    const r=await fetch('/api/meta/finalize',{method:'POST',headers:{Authorization:'Bearer '+session.access_token}});
+    const data=await r.json().catch(()=>({}));
+    history.replaceState({},'',location.pathname+(r.ok?'?meta=connected':'?meta=error'));
+    if(!r.ok)console.error('Meta finalize failed',data);
+  }catch(e){console.error('Meta finalize failed',e);history.replaceState({},'',location.pathname+'?meta=error')}
+}
+async function bootstrap(){try{if(!CLOUD)return login();CLOUD.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT')login();if(event==='PASSWORD_RECOVERY')setTimeout(recoveryScreen,0)});const {data:{session},error}=await CLOUD.auth.getSession();if(error)throw error;if(location.hash.includes('type=recovery')&&session)return recoveryScreen();if(!session)return login();await finalizeGoogleOAuth(session);await finalizeMetaOAuth(session);await refresh()}catch(e){console.error('VERTEX bootstrap error',e);login()}}
 bootstrap();
