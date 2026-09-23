@@ -15,3 +15,5 @@ Dynamic QR links use `/q/<slug>`. The printed URL never changes. The QR manageme
 Run `python3 -m http.server 8080` in this directory and open `http://localhost:8080`. This tests the client UI, but serverless API routes require a Vercel deployment. Run `node --check` on the JavaScript files before publishing.
 
 The Supabase project is `ujrgwowdxxazbjilstht`. Database migrations `vertex_atomic_quote_acceptance` and `vertex_dynamic_qr_links` have been applied to production. Production login and write operations require an authorized account; no production test records are created by this README.
+
+Backups contain the raw records of clients, properties, quotes, jobs, quote items, tasks, payments, and QR links. Restore inserts missing records in one database transaction; it does not overwrite records already present. It does not restore pricing settings or audit history. Migration `vertex_restore_missing_backup` adds this operation, and `vertex_qr_authenticated_grants` grants authorized users access to QR management.
