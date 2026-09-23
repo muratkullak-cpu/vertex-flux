@@ -96,6 +96,8 @@ body{background:linear-gradient(145deg,#061827 0%,#082842 48%,#06131f 100%)}
 
 /* cloud login polish */
 .job-controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.qr-preview{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:18px 0}.qr-preview img{background:#fff;padding:10px;border-radius:12px;max-width:100%;height:auto}
+.restore-input{display:block;margin:18px 0;color:#d8e9f5}.restore-input input{display:block;margin-top:9px;max-width:100%}
+@media print{body{background:#fff!important;color:#111!important}#app,.vf-modal-actions,.vf-modal-head button{display:none!important}.vf-modal{position:static!important;display:block!important;background:#fff!important;padding:0!important}.vf-modal-card{position:static!important;display:block!important;width:100%!important;max-width:none!important;max-height:none!important;overflow:visible!important;box-shadow:none!important;background:#fff!important;color:#111!important;border:0!important}.vf-modal-card *{color:#111!important}.vf-modal-card .row{border-color:#ccc!important;background:#fff!important}}
 .password-wrap{position:relative;margin-top:9px}.password-wrap input{margin-top:0!important;padding-right:88px!important;text-align:left!important;font-size:16px!important;letter-spacing:.03em!important;padding-left:16px!important}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:rgba(67,189,242,.12);color:#8ddcff;border-radius:9px;padding:8px 10px;cursor:pointer;font-weight:700;font-size:11px}
 .login-logo,.brand-mark,.presentation-logo{background:transparent!important;isolation:isolate}.login-logo img,.brand-mark img,.presentation-logo img{mix-blend-mode:screen!important;background:transparent!important}
 
