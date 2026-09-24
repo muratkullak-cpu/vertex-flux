@@ -10,12 +10,11 @@ module.exports=async function handler(req,res){
  try{
   const rows=await rpc(auth,'vertex_google_ads_proxy_payload');
   const cfg=rows&&rows[0]; if(!cfg?.refresh_token)return res.status(401).json({ok:false,error:'google_not_connected'});
-  const clientId=process.env.GOOGLE_CLIENT_ID,clientSecret=process.env.GOOGLE_CLIENT_SECRET,developerToken=process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
+  const clientId=process.env.GOOGLE_CLIENT_ID,clientSecret=process.env.GOOGLE_CLIENT_SECRET;
   if(!clientId||!clientSecret)return res.status(500).json({ok:false,error:'google_oauth_env_missing'});
-  if(!developerToken)return res.status(500).json({ok:false,error:'google_ads_developer_token_missing'});
   const tr=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,refresh_token:cfg.refresh_token,grant_type:'refresh_token'})});
   const tok=await tr.json(); if(!tr.ok)return res.status(401).json({ok:false,error:'google_refresh_failed'});
-  const gr=await fetch('https://googleads.googleapis.com/v25/customers:listAccessibleCustomers',{headers:{authorization:'Bearer '+tok.access_token,'developer-token':developerToken}});
+  const gr=await fetch('https://googleads.googleapis.com/v25/customers:listAccessibleCustomers',{headers:{authorization:'Bearer '+tok.access_token}});
   const gd=await gr.json().catch(()=>({}));
   if(!gr.ok)return res.status(gr.status).json({ok:false,error:'google_ads_api_error',google:gd.error||gd});
   const customers=(gd.resourceNames||[]).map(x=>String(x).replace('customers/',''));
