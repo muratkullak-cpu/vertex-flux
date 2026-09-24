@@ -8,7 +8,7 @@ Kaynak: Murat'ın paylaştığı “Uygulama Fikri Geliştirme” konuşması ve
 | Görselli, sayfa sayfa müşteri sunumları | Var | Üç sektörde temsili stok fotoğraf ve mobil ekran örnekleri var; gerçek müşteri örneği değil. |
 | Müşteri, emlak mülkü ve teklif kaydı | Var | Üretimde gerçek müşteri kaydı bulunmadığından teklif → kabul → iş akışı arayüzde uçtan uca denenmedi. |
 | İş, takvim, görev, ödeme kaydı | Kısmi | Ekranlar ve veri tabloları var; gerçek işte uçtan uca operasyon doğrulaması bekliyor. |
-| Dinamik QR ve aylık tarama raporu | Kısmi | Sabit `/q/` adresi, değişen hedef ve rapor var; özel alan adı `go.vertexflux.com`, otomatik hedef sağlık kontrolü ve tur erişilemiyorsa uyarı/onarım yok. QR kod görseli harici QR sağlayıcısından alınır. |
+| Dinamik QR ve aylık tarama raporu | Kısmi | Sabit `/q/` adresi, değişen hedef, rapor ve yönetici tarafından başlatılan hedef kontrolü var. Özel alan adı `go.vertexflux.com`, otomatik periyodik kontrol ve tur erişilemiyorsa otomatik uyarı/onarım yok. QR kod görseli harici QR sağlayıcısından alınır. |
 | Yedek ve eksik kayıtları geri yükleme | Kısmi | Kayıt yedeği ve eksik kayıt yüklemesi var; fiyat ayarları/yönetim geçmişi geri yükleme kapsamına alınmamış. |
 | Müşteri sunumunda gizli bilgilerin saklanması | Kısmi | Ayrı sunum ve yönetici şifresiyle çıkış var; istenen PIN ile tüm gizli yönetim ekranlarını ayrı yetki seviyelerine bölme tamamlanmadı. |
 | Gizli USD tabanı, TCMB kuru, müşteriye TL | Var | Manuel kur güncellemesi ve fiyat düzenleme var; fiyatların ticari doğrulaması ayrıca gerekiyor. |
