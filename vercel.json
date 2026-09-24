@@ -1,1 +1,1 @@
-{"rewrites":[{"source":"/q/:slug","destination":"/api/q?slug=:slug"},{"source":"/privacy","destination":"/privacy.html"},{"source":"/terms","destination":"/terms.html"},{"source":"/data-deletion","destination":"/data-deletion.html"}]}
+{"rewrites":[{"source":"/q/:slug","destination":"/api/q?slug=:slug"},{"source":"/privacy","destination":"/privacy.html"},{"source":"/terms","destination":"/terms.html"},{"source":"/data-deletion","destination":"/data-deletion.html"}],"crons":[{"path":"/api/cron/qr-health","schedule":"0 8 * * *"}]}
