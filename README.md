@@ -23,3 +23,7 @@ Backups contain the raw records of clients, properties, quotes, jobs, quote item
 The QR monthly report records scan timestamps in `qr_scans` and groups by month in Türkiye time. The private Market screen stores observed prices with source URLs and dates. The Finance screen stores expenses separately from received and pending payments; the displayed difference between receipts and expenses is not a tax or accounting profit calculation. Backups also include market sources, cost entries, and pricing settings.
 
 Subscriptions are recorded with a manually selected renewal date. On or after that date, an authorized operator can renew once, advancing the date and crediting the client in a single transaction. No payment is collected automatically. Manual credit changes are recorded in an append-only ledger. The backup includes subscriptions and credit movements.
+
+## Sector presentation imagery
+
+The six images under `assets/presentation/` are illustrative Unsplash stock photos, not examples of VERTEX client work or interactive 360 tours. The presentation labels them accordingly. Source image IDs: `1600596542815-ffad4c1539a9`, `1600210492486-724fe5c67fb0`, `1605100804763-247f67b3557e`, `1515562141207-7a88fb7ce338`, `1566073771259-6a8506099945`, `1611892440504-42a792e24d32`. License: https://unsplash.com/license. Images are hosted with the app so the slides do not depend on a remote image service during a meeting.
