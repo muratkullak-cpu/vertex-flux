@@ -145,6 +145,7 @@ body{background:linear-gradient(145deg,#061827 0%,#082842 48%,#06131f 100%)}
 
 /* Sector pitch decks: real illustrative photography, readable overlays and mobile controls. */
 .presentation-v3{background:radial-gradient(circle at 9% 8%,rgba(61,105,121,.18),transparent 34%),#07131d}
+.presentation-v3 .pitch{min-height:calc(100vh - 50px)}
 .presentation-v3 .pitch{--pitch-accent:#65c9ef;background:linear-gradient(130deg,rgba(11,44,57,.5),transparent 58%)}
 .presentation-v3 .pitch-kuyum{--pitch-accent:#e0c38a;background:linear-gradient(130deg,rgba(82,53,37,.35),transparent 58%)}
 .presentation-v3 .pitch-otel{--pitch-accent:#80d8c3;background:linear-gradient(130deg,rgba(24,74,65,.32),transparent 58%)}
