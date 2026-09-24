@@ -10,6 +10,8 @@ Sign in → select sector → create a client → create a quote using the Price
 
 Dynamic QR links use `/q/<slug>`. The printed URL never changes. The QR management screen can update the HTTPS destination, disable the link, and view total scans. QR graphics are generated on demand by the goQR image API; save a print copy of the graphic before use. The redirect and scan counter are served from Supabase via `/api/q`.
 
+The QR screen also offers an on-demand destination check through `/api/qr-check`. It requires a signed-in VERTEX user, reads the saved destination under Supabase RLS, and probes public HTTPS hosts without following redirects or incrementing scans. A 2xx response is reachable, 404/410 is missing, and other responses or network errors remain unverified. This is not scheduled monitoring and does not guarantee that an interactive tour works after its initial HTTP response.
+
 ## Local check
 
 Run `python3 -m http.server 8080` in this directory and open `http://localhost:8080`. This tests the client UI, but serverless API routes require a Vercel deployment. Run `node --check` on the JavaScript files before publishing.
