@@ -12,7 +12,7 @@ Kaynak: Murat'ın paylaştığı “Uygulama Fikri Geliştirme” konuşması ve
 | Yedek ve eksik kayıtları geri yükleme | Kısmi | Kayıt yedeği ve eksik kayıt yüklemesi var; fiyat ayarları/yönetim geçmişi geri yükleme kapsamına alınmamış. |
 | Müşteri sunumunda gizli bilgilerin saklanması | Kısmi | Ayrı sunum ve yönetici şifresiyle çıkış var; istenen PIN ile tüm gizli yönetim ekranlarını ayrı yetki seviyelerine bölme tamamlanmadı. |
 | Gizli USD tabanı, TCMB kuru, müşteriye TL | Var | Manuel kur güncellemesi ve fiyat düzenleme var; fiyatların ticari doğrulaması ayrıca gerekiyor. |
-| Sektör bazlı fiyat seçimi, paketler ve teklif toplamı | Kısmi | Seçim ve toplama var; yeni kapsam formu m²/kat/adet bilgilerini teklife taşıyor, ek kapsam tutarını yönetici giriyor. Otomatik m²/oda/ürün fiyat formülü ve onaylı tarife yok. |
+| Sektör bazlı fiyat seçimi, paketler ve teklif toplamı | Kısmi | Emlak 360° turunda 150 m²/ilk kat baz, başlayan her ek 50 m² +750 ₺ ve sonraki her kat +500 ₺ kuralı uygulanır; portföy sayısı aynı kapsamın tekrarına çarpılır. Kural Murat'ın onayladığı ilk satış önerisidir, piyasa ortalaması olarak doğrulanmadı. Kuyum/otel adet bazlı otomatik tarife ve onaylı nihai ticari fiyatlar yok. |
 | Antalya rakipleri, düşük/ortalama/yüksek fiyat ve maliyet marjı kıyası | Kısmi | Kaynaklı piyasa kayıtları ve birkaç yayımlanmış örnek var; kapsamlı ve güncel Antalya karşılaştırması, kaynak bazlı aralık ve tüm hizmetlerin maliyet/marj tablosu yok. |
 | Google Ads bağlantısı ve canlı forecast | Kısmi | OAuth ve erişilebilen hesap sorgusu var; kampanya için gerçek gösterim/tıklama/CPC forecast entegrasyonu ve buna göre teklif fiyatlaması yok. |
 | Meta bağlantısı ve hedef/gösterim bazlı anlık tahmin | Kısmi | OAuth/bağlantı kontrolü ve hedef, günlük bütçe, süre seçimi var; gerçek Meta reach/fiyat tahmini ve hedef gösterim kaydırıcısı yok. Bütçe × gün hesaplanıyor. |
@@ -27,7 +27,7 @@ Kaynak: Murat'ın paylaştığı “Uygulama Fikri Geliştirme” konuşması ve
 
 ## Öncelik sırası
 
-1. VERTEX hizmet fiyatlarını gerçek kapsam/maliyet ve tarihli yerel kaynaklarla netleştir; otomatik m²/oda/ürün katsayılarını yalnız onaylı kurallarla ekle.
+1. VERTEX hizmet fiyatlarını gerçek kapsam/maliyet ve tarihli yerel kaynaklarla netleştir; eklenen emlak 360° kuralını gerçek işler üzerinden doğrula, oda/ürün katsayılarını yalnız onaylı kurallarla ekle.
 2. Gerçek müşteri kaydı geldiğinde teklif → kabul → iş → takvim → teslim → ödeme akışını arayüzden doğrula.
 3. QR hedef sağlığı, özel alan adı, basılı kod dayanıklılığı ve erişilemeyen tur uyarılarını tamamla.
 4. Reklam tahminlerinin gerçek API verisi ile teklif hesaplamasını ve piyasa maliyet karşılaştırmasını tamamla; veri yoksa tahmin gösterme.
