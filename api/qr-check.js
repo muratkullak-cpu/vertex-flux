@@ -45,4 +45,4 @@ module.exports=async function handler(req,res){
   return res.status(200).json({ok:true,state:healthStatus(code),status:code,checkedAt:new Date().toISOString()});
  }catch(e){return res.status(200).json({ok:true,state:'unknown',reason:e.message==='timeout'?'timeout':'connection_failed',checkedAt:new Date().toISOString()})}
 };
-module.exports._check={publicAddress,safeTarget,healthStatus};
+module.exports._check={publicAddress,safeTarget,healthStatus,probe};
