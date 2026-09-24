@@ -2,8 +2,9 @@ const {safeTarget,healthStatus,probe}=require('../qr-check')._check;
 const BASE='https://ujrgwowdxxazbjilstht.supabase.co/rest/v1';
 const LIMIT=50;
 async function request(path,options={}){
- const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
- const response=await fetch(BASE+path,{...options,headers:{apikey:key,authorization:'Bearer '+key,'content-type':'application/json',...options.headers}});
+ const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
+ const auth=key.startsWith('sb_secret_')?{}:{authorization:'Bearer '+key};
+ const response=await fetch(BASE+path,{...options,headers:{apikey:key,...auth,'content-type':'application/json',...options.headers}});
  if(!response.ok)throw Error('database_'+response.status);
  return response.status===204?null:response.json();
 }
@@ -14,7 +15,7 @@ async function inspect(url){
 module.exports=async function handler(req,res){
  res.setHeader('Cache-Control','no-store');
  if(req.method!=='GET')return res.status(405).json({error:'method_not_allowed'});
- if(!process.env.CRON_SECRET||!process.env.SUPABASE_SERVICE_ROLE_KEY)return res.status(503).json({error:'monitor_not_configured'});
+ if(!process.env.CRON_SECRET||!(process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY))return res.status(503).json({error:'monitor_not_configured'});
  if(req.headers.authorization!=='Bearer '+process.env.CRON_SECRET)return res.status(401).json({error:'unauthorized'});
  try{
   let checked=0,missing=0,unknown=0;
