@@ -1,4 +1,4 @@
-# VERTEX Flux istek denetimi — 24 Eylül 2026
+# VERTEX Flux istek denetimi — 29 Eylül 2026
 
 Kaynak: Murat'ın paylaştığı “Uygulama Fikri Geliştirme” konuşması ve bu deponun mevcut kodu. “Var” kodun bulunduğunu ifade eder; gerçek müşteriyle uçtan uca doğrulandığı anlamına gelmez. VERTEX'in tablet satış/yönetim paneli ile kuyumcunun müşterilerine açılacak uygulama ayrı ürünlerdir.
 
@@ -8,7 +8,7 @@ Kaynak: Murat'ın paylaştığı “Uygulama Fikri Geliştirme” konuşması ve
 | Görselli, sayfa sayfa müşteri sunumları | Var | Üç sektörde temsili stok fotoğraf ve mobil ekran örnekleri var; gerçek müşteri örneği değil. |
 | Müşteri, emlak mülkü ve teklif kaydı | Var | Üretimde gerçek müşteri kaydı bulunmadığından teklif → kabul → iş akışı arayüzde uçtan uca denenmedi. |
 | İş, takvim, görev, ödeme kaydı | Kısmi | Ekranlar ve veri tabloları var; gerçek işte uçtan uca operasyon doğrulaması bekliyor. |
-| Dinamik QR ve aylık tarama raporu | Kısmi | Sabit `/q/` adresi, değişen hedef, rapor ve yönetici tarafından başlatılan hedef kontrolü var. Özel alan adı `go.vertexflux.com`, otomatik periyodik kontrol ve tur erişilemiyorsa otomatik uyarı/onarım yok. QR kod görseli harici QR sağlayıcısından alınır. |
+| Dinamik QR ve aylık tarama raporu | Kısmi | Sabit `/q/` adresi, değişen hedef, rapor, elle ve günlük zamanlanmış hedef kontrolü kodda var. Supabase'te test QR çözümleme ve sayaç doğrulandı; Vercel hesabı askıda olduğu için canlı yönlendirme ve zamanlanmış kontrol doğrulanamadı. Sağlık tablosunda henüz sonuç yok. Özel alan adı `go.vertexflux.com`, arızada harici bildirim/onarım yok. QR görseli harici sağlayıcıdan alınır. |
 | Yedek ve eksik kayıtları geri yükleme | Kısmi | Kayıt yedeği ve eksik kayıt yüklemesi var; fiyat ayarları/yönetim geçmişi geri yükleme kapsamına alınmamış. |
 | Müşteri sunumunda gizli bilgilerin saklanması | Kısmi | Ayrı sunum ve yönetici şifresiyle çıkış var; istenen PIN ile tüm gizli yönetim ekranlarını ayrı yetki seviyelerine bölme tamamlanmadı. |
 | Gizli USD tabanı, TCMB kuru, müşteriye TL | Var | Manuel kur güncellemesi ve fiyat düzenleme var; fiyatların ticari doğrulaması ayrıca gerekiyor. |
@@ -29,6 +29,6 @@ Kaynak: Murat'ın paylaştığı “Uygulama Fikri Geliştirme” konuşması ve
 
 1. VERTEX hizmet fiyatlarını gerçek kapsam/maliyet ve tarihli yerel kaynaklarla netleştir; eklenen emlak 360° kuralını gerçek işler üzerinden doğrula, oda/ürün katsayılarını yalnız onaylı kurallarla ekle.
 2. Gerçek müşteri kaydı geldiğinde teklif → kabul → iş → takvim → teslim → ödeme akışını arayüzden doğrula.
-3. QR hedef sağlığı, özel alan adı, basılı kod dayanıklılığı ve erişilemeyen tur uyarılarını tamamla.
+3. Vercel hesabı etkinleştirildikten sonra son kodu dağıt; test QR yönlendirmesini, günlük hedef kontrolünün veritabanına yazmasını ve telefon/tablet sunumlarını canlıda doğrula. Ardından özel alan adı, basılı kod dayanıklılığı ve erişilemeyen tur bildirimini tamamla.
 4. Reklam tahminlerinin gerçek API verisi ile teklif hesaplamasını ve piyasa maliyet karşılaştırmasını tamamla; veri yoksa tahmin gösterme.
 5. Kuyumcu müşteri uygulamasını ayrı kapsam, maliyet ve ürün doğrulama planıyla ele al. Bu panelin hazır olması o uygulamanın hazır olduğu anlamına gelmez.
