@@ -24,6 +24,12 @@ Backups contain the raw records of clients, properties, quotes, jobs, quote item
 
 The QR monthly report records scan timestamps in `qr_scans` and groups by month in Türkiye time. The private Market screen stores observed prices with source URLs and dates. The Finance screen stores expenses separately from received and pending payments; the displayed difference between receipts and expenses is not a tax or accounting profit calculation. Backups also include market sources, cost entries, and pricing settings.
 
+## Kuyumcu ürün stüdyosu
+
+The Kuyum workspace includes a per-client jewelry shop. Create an active Kuyum client, then open its shop, assign an existing Supabase Auth user by email, and add a product with a real JPG/PNG/WebP photo (10 MB maximum). Member accounts see only their assigned shop's products. Originals and generated drafts live in the private `jewelry-private` bucket. `/api/jewelry` authenticates the user, claims one of at most two image attempts atomically, sends the original to the OpenAI Images API using `gpt-image-2`, and stores the 1008×1792 candidate privately. The operator compares original and candidate and explicitly approves publication. Only then does the server copy the image to `jewelry-public`. Public collections are at `/koleksiyon/<shop-slug>` and remain hidden until the admin enables the shop.
+
+Production needs `SUPABASE_SECRET_KEY` (or the legacy service-role key) and `OPENAI_API_KEY` in Vercel. Supabase migrations for the jewelry tables, buckets, quota claim, and member assignment have been applied to project `ujrgwowdxxazbjilstht`. Do not place secret keys in client files. AI results can alter fine product details; a human must check each image. No production product was created and no image provider call or live storefront test was completed while Vercel remained paused. This module currently covers image generation only; video, comments, saves, notifications, orders, payments, and credit purchases remain outside the implemented workflow.
+
 Subscriptions are recorded with a manually selected renewal date. On or after that date, an authorized operator can renew once, advancing the date and crediting the client in a single transaction. No payment is collected automatically. Manual credit changes are recorded in an append-only ledger. The backup includes subscriptions and credit movements.
 
 ## Sector presentation imagery
