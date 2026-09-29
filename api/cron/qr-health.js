@@ -6,7 +6,11 @@ async function request(path,options={}){
  const auth=key.startsWith('sb_secret_')?{}:{authorization:'Bearer '+key};
  const response=await fetch(BASE+path,{...options,headers:{apikey:key,...auth,'content-type':'application/json',...options.headers}});
  if(!response.ok)throw Error('database_'+response.status);
- return response.status===204?null:response.json();
+ // PostgREST's return=minimal may send 201 with an empty body after an upsert.
+ // A successful write must not be treated as a failed health check.
+ if(response.status===204)return null;
+ const body=await response.text();
+ return body?JSON.parse(body):null;
 }
 async function inspect(url){
  try{const target=await safeTarget(url);if(!target)return {state:'unknown',status:null};let status=await probe(target,'HEAD');if(status===405||status===501)status=await probe(target,'GET');return {state:healthStatus(status),status}}
