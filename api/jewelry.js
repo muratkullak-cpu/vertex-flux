@@ -6,7 +6,7 @@ const key=()=>process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE
 function headers(extra={}){const secret=key();return {apikey:secret,...(secret.startsWith('sb_secret_')?{}:{authorization:'Bearer '+secret}),...extra}}
 async function db(path,options={}){
  const response=await fetch(BASE+'/rest/v1/'+path,{...options,headers:headers({'content-type':'application/json',...options.headers})});
- if(!response.ok)throw Error('database_'+response.status);
+ if(!response.ok){const error=await response.json().catch(()=>({}));throw Error(error.message==='image_credits_missing'?'image_credits_missing':'database_'+response.status)}
  const body=await response.text();return body?JSON.parse(body):null;
 }
 async function userFrom(req){
@@ -40,10 +40,11 @@ module.exports=async function handler(req,res){
  try{
   if(req.method==='GET'&&req.query.action==='catalog'){
    const slug=String(req.query.slug||'');if(!/^[a-z0-9-]{5,48}$/.test(slug))return fail(res,400,'invalid_shop');
-   const shops=await db('jewelry_shops?select=id,name,tagline,whatsapp&slug=eq.'+slug+'&published=eq.true&limit=1');
+   const shops=await db('jewelry_shops?select=id,name,tagline,whatsapp,logo_url,accent,phrases&slug=eq.'+slug+'&published=eq.true&limit=1');
    if(!shops.length)return fail(res,404,'shop_not_found');
-   const shop=shops[0],products=await db('jewelry_products?select=id,title,category,description,public_path&shop_id=eq.'+shop.id+'&status=eq.published&order=created_at.desc&limit=100');
-   return res.status(200).json({ok:true,shop:{name:shop.name,tagline:shop.tagline,whatsapp:shop.whatsapp},products:products.map(p=>({id:p.id,title:p.title,category:p.category,description:p.description,image:BASE+'/storage/v1/object/public/'+PUBLIC+'/'+p.public_path}))});
+   const shop=shops[0],products=await db('jewelry_products?select=id,title,category,description,public_path,phrase_index,campaign,video_status,video_public_path&shop_id=eq.'+shop.id+'&status=eq.published&order=created_at.desc&limit=100');
+   const [branches,comments]=await Promise.all([db('jewelry_branches?select=name,address,directions_url,phone,hours&shop_id=eq.'+shop.id+'&active=eq.true&order=created_at.asc'),products.length?db('jewelry_comments?select=product_id,display_name,body,created_at&product_id=in.('+products.map(p=>p.id).join(',')+')&status=eq.approved&order=created_at.desc&limit=200'):[]]);
+   return res.status(200).json({ok:true,shop,branches,products:products.map(p=>({...p,public_path:undefined,video_public_path:undefined,video:p.video_status==='published'&&p.video_public_path?BASE+'/storage/v1/object/public/jewelry-video-public/'+p.video_public_path:null,phrase:shop.phrases?.[p.phrase_index]||'',image:BASE+'/storage/v1/object/public/'+PUBLIC+'/'+p.public_path,comments:comments.filter(c=>c.product_id===p.id)}))});
   }
   const userId=await userFrom(req);if(!userId)return fail(res,401,'session_required');
   if(req.method==='POST'&&req.body?.action==='member'){
@@ -64,11 +65,11 @@ module.exports=async function handler(req,res){
   }
   if(req.method==='POST'&&req.body?.action==='generate'){
    if(!process.env.OPENAI_API_KEY)return fail(res,503,'image_provider_not_configured');
-   if(!product.source_path||product.generation_count>=2||!['draft','review'].includes(product.status))return fail(res,409,'generation_not_available');
+   if(!product.source_path||!['draft','review'].includes(product.status)||['processing','review','published'].includes(product.video_status))return fail(res,409,'generation_not_available');
    const source=await object(product.source_path),ext=product.source_path.split('.').pop();
    const mime={jpg:'image/jpeg',png:'image/png',webp:'image/webp'}[ext];if(!mime||source.length>10485760)return fail(res,400,'invalid_source_image');
    const claim=await db('rpc/jewelry_claim_generation',{method:'POST',body:JSON.stringify({p_id:id})});
-   if(!claim)return fail(res,409,'generation_not_available');
+   if(!claim?.id)return fail(res,409,'generation_not_available');
    let completed=false;
    try{
    const form=new FormData();form.append('model','gpt-image-2');form.append('size','1008x1792');
@@ -83,19 +84,30 @@ module.exports=async function handler(req,res){
    const candidate=product.shop_id+'/'+product.id+'/candidate-'+crypto.randomUUID()+'.png';
    const saved=await fetch(BASE+'/storage/v1/object/'+PRIVATE+'/'+candidate,{method:'POST',headers:headers({'content-type':'image/png'}),body:bytes});
    if(!saved.ok)throw Error('candidate_save_failed');
-   await db('jewelry_products?id=eq.'+id+'&status=eq.generating',{method:'PATCH',body:JSON.stringify({candidate_path:candidate,status:'review',generation_claimed_at:null,updated_at:new Date().toISOString()}),headers:{Prefer:'return=minimal'}});
+   await db('jewelry_products?id=eq.'+id+'&status=eq.generating&generation_claimed_at=eq.'+encodeURIComponent(claim.generation_claimed_at),{method:'PATCH',body:JSON.stringify({candidate_path:candidate,status:'review',generation_claimed_at:null,claim_cost:0,claim_free_date:null,claim_previous_status:null,updated_at:new Date().toISOString()}),headers:{Prefer:'return=minimal'}});
    completed=true;
    return res.status(200).json({ok:true,image:await signed(candidate),generation_count:claim.generation_count});
    }finally{
-    if(!completed)await db('jewelry_products?id=eq.'+id+'&status=eq.generating&generation_claimed_at=eq.'+encodeURIComponent(claim.generation_claimed_at),{method:'PATCH',body:JSON.stringify({status:product.status,generation_count:product.generation_count,generation_claimed_at:null}),headers:{Prefer:'return=minimal'}}).catch(e=>console.error('Jewelry claim release failed',e));
+    if(!completed)await db('rpc/jewelry_release_generation',{method:'POST',body:JSON.stringify({p_id:id,p_claimed_at:claim.generation_claimed_at})}).catch(e=>console.error('Jewelry claim release failed',e));
    }
   }
+  if(req.method==='POST'&&req.body?.action==='recover'){
+   if(product.status!=='generating'||Date.now()-new Date(product.generation_claimed_at).getTime()<900000)return fail(res,409,'generation_still_running');
+   await db('rpc/jewelry_release_generation',{method:'POST',body:JSON.stringify({p_id:id,p_claimed_at:product.generation_claimed_at})});
+   return res.status(200).json({ok:true});
+  }
   if(req.method==='POST'&&req.body?.action==='publish'){
-   if(product.status!=='review'||!product.candidate_path)return fail(res,409,'review_required');
+   if(req.body.approved!==true||product.status!=='review'||!product.candidate_path)return fail(res,409,'review_required');
    const bytes=await object(product.candidate_path),path=product.shop_id+'/'+product.id+'.png';await upload(path,bytes);
-   await db('jewelry_products?id=eq.'+id,{method:'PATCH',body:JSON.stringify({status:'published',public_path:path,updated_at:new Date().toISOString()}),headers:{Prefer:'return=minimal'}});
+   await db('jewelry_products?id=eq.'+id+'&status=eq.review',{method:'PATCH',body:JSON.stringify({status:'published',public_path:path,approved_by:userId,approved_at:new Date().toISOString(),updated_at:new Date().toISOString()}),headers:{Prefer:'return=minimal'}});
+   return res.status(200).json({ok:true});
+  }
+  if(req.method==='POST'&&req.body?.action==='unpublish'){
+   if(product.status!=='published')return fail(res,409,'product_not_published');
+   await db('jewelry_products?id=eq.'+id,{method:'PATCH',body:JSON.stringify({status:'review',updated_at:new Date().toISOString()}),headers:{Prefer:'return=minimal'}});
    return res.status(200).json({ok:true});
   }
   return fail(res,405,'method_not_allowed');
- }catch(error){console.error('Jewelry studio:',error);return fail(res,500,'studio_failed')}
+ }catch(error){console.error('Jewelry studio:',error);return fail(res,error.message==='image_credits_missing'?409:500,error.message==='image_credits_missing'?'image_credits_missing':'studio_failed')}
 };
+module.exports._studio={BASE,PRIVATE,PUBLIC,key,headers,db,userFrom,allowed,object,signed,fail};
