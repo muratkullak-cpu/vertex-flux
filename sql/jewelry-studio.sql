@@ -52,12 +52,12 @@ create policy jewelry_shops_admin_insert on public.jewelry_shops for insert to a
 create policy jewelry_shops_manage on public.jewelry_shops for update to authenticated
  using ((select public.vertex_is_admin())) with check ((select public.vertex_is_admin()));
 create policy jewelry_products_read on public.jewelry_products for select to authenticated
- using ((select public.vertex_is_admin()) or exists(select 1 from public.jewelry_members m where m.shop_id=shop_id and m.user_id=(select auth.uid())));
+ using ((select public.vertex_is_admin()) or exists(select 1 from public.jewelry_members m where m.shop_id=jewelry_products.shop_id and m.user_id=(select auth.uid())));
 create policy jewelry_products_insert on public.jewelry_products for insert to authenticated
- with check ((select public.vertex_is_admin()) or exists(select 1 from public.jewelry_members m where m.shop_id=shop_id and m.user_id=(select auth.uid())));
+ with check (created_by=(select auth.uid()) and ((select public.vertex_is_admin()) or exists(select 1 from public.jewelry_members m where m.shop_id=jewelry_products.shop_id and m.user_id=(select auth.uid()))));
 create policy jewelry_products_update on public.jewelry_products for update to authenticated
- using ((select public.vertex_is_admin()) or exists(select 1 from public.jewelry_members m where m.shop_id=shop_id and m.user_id=(select auth.uid())))
- with check ((select public.vertex_is_admin()) or exists(select 1 from public.jewelry_members m where m.shop_id=shop_id and m.user_id=(select auth.uid())));
+ using ((select public.vertex_is_admin()) or exists(select 1 from public.jewelry_members m where m.shop_id=jewelry_products.shop_id and m.user_id=(select auth.uid())))
+ with check ((select public.vertex_is_admin()) or exists(select 1 from public.jewelry_members m where m.shop_id=jewelry_products.shop_id and m.user_id=(select auth.uid())));
 
 insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
  values ('jewelry-private','jewelry-private',false,10485760,array['image/jpeg','image/png','image/webp'])
