@@ -4,6 +4,10 @@ for(const file of ['jewelry-admin.js','jewelry-operations.js','app.js','manageme
 assert.equal(vm.runInContext("resolveQRPurpose('whatsapp','+90 555 555 55 55')",context),'https://wa.me/905555555555');
 assert.equal(vm.runInContext("resolveQRPurpose('instagram','@vertex')",context),'https://www.instagram.com/vertex/');
 for(const [purpose,value] of [['tour','javascript:alert(1)'],['location','https://evil.test'],['review','https://evil.test'],['tour','https://name:pass@example.test']])assert.throws(()=>vm.runInContext(`resolveQRPurpose(${JSON.stringify(purpose)},${JSON.stringify(value)})`,context));
+assert.equal(vm.runInContext("subscriptionDueState({status:'active',next_renewal:'2026-10-01'},'2026-10-01').kind",context),'today');
+assert.equal(vm.runInContext("subscriptionDueState({status:'active',next_renewal:'2026-09-30'},'2026-10-01').days",context),-1);
+assert.equal(vm.runInContext("subscriptionDueState({status:'active',next_renewal:'2026-10-08'},'2026-10-01').kind",context),'soon');
+assert.equal(vm.runInContext("subscriptionDueState({status:'cancelled',next_renewal:'2026-09-30'},'2026-10-01').kind",context),'inactive');
 vm.runInContext("layout=(html)=>html;V.tenantMode=true;V.data.jewelryShops=[{id:'s',name:'Test',slug:'test-shop',image_credits:0}];V.data.jewelryProducts=[]",context);
 const tenant=vm.runInContext('jewelryStudio()',context);assert(!tenant.includes('Kullanıcı Ata'));assert(!tenant.includes('Vitrin Ayarları'));assert(tenant.includes('Ürün Ekle'));
 const api=require('../api/jewelry');process.env.SUPABASE_SECRET_KEY='sb_secret_fixture';
