@@ -2,6 +2,8 @@ const SUPABASE_URL='https://ujrgwowdxxazbjilstht.supabase.co';
 const PUBLISHABLE_KEY='sb_publishable_uvi9mfx29vf9ohey_NfMSg_LT-TxBXY';
 
 module.exports=async function handler(req,res){
+ res.setHeader('Cache-Control','no-store');
+ res.setHeader('Referrer-Policy','no-referrer');
  if(req.method!=='GET')return res.status(405).end();
  const slug=String(req.query.slug||'');
  if(!/^[a-z0-9-]{5,48}$/.test(slug))return res.status(404).send('QR bağlantısı bulunamadı.');
@@ -12,8 +14,8 @@ module.exports=async function handler(req,res){
   if(!response.ok)return res.status(503).send('Bağlantı şu anda açılamıyor.');
   const target=await response.json();
   if(typeof target!=='string'||!/^https:\/\/[^\s]+$/i.test(target))return res.status(404).send('QR bağlantısı bulunamadı.');
-  res.setHeader('Cache-Control','no-store');
-  res.setHeader('Referrer-Policy','no-referrer');
+  let url;try{url=new URL(target)}catch{return res.status(404).send('QR bağlantısı bulunamadı.')}
+  if(url.protocol!=='https:'||url.username||url.password)return res.status(404).send('QR bağlantısı bulunamadı.');
   return res.redirect(302,target);
  }catch{return res.status(503).send('Bağlantı şu anda açılamıyor.')}
 };

@@ -32,11 +32,11 @@ module.exports=async function(req,res){
   }
   if(req.method==='GET'&&action==='status'){
    if(p.video_candidate_path&&['review','published'].includes(p.video_status))return res.status(200).json({ok:true,status:p.video_status,video:await preview(p.video_candidate_path)});
-   if(!p.video_job_id||!/^video_[a-zA-Z0-9_-]+$/.test(p.video_job_id))return res.status(200).json({ok:true,status:p.video_status});
+   if(!p.video_job_id||!/^video_[a-zA-Z0-9_-]+$/.test(p.video_job_id))return res.status(200).json({ok:true,status:p.video_status,...(p.video_status==='processing'?{warning:'video_submission_unconfirmed'}:{})});
    if(!process.env.OPENAI_API_KEY)return fail(res,503,'image_provider_not_configured');
    const r=await fetch('https://api.openai.com/v1/videos/'+p.video_job_id,{headers:{authorization:'Bearer '+process.env.OPENAI_API_KEY}});
    if(!r.ok)return fail(res,502,'video_status_unavailable');const job=await r.json();
-   if(job.status==='failed'){await db('jewelry_products?id=eq.'+id,{method:'PATCH',body:JSON.stringify({video_status:'failed',video_attempts:0,video_job_id:null})});return res.status(200).json({ok:true,status:'failed'})}
+   if(job.status==='failed'){await db('jewelry_products?id=eq.'+id+'&video_status=eq.processing&video_job_id=eq.'+encodeURIComponent(p.video_job_id),{method:'PATCH',body:JSON.stringify({video_status:'failed',video_attempts:0,video_job_id:null})});return res.status(200).json({ok:true,status:'failed'})}
    if(job.status!=='completed')return res.status(200).json({ok:true,status:'processing',progress:job.progress||0});
    const download=await fetch('https://api.openai.com/v1/videos/'+p.video_job_id+'/content',{headers:{authorization:'Bearer '+process.env.OPENAI_API_KEY}});
    if(!download.ok)return fail(res,502,'video_download_unavailable');

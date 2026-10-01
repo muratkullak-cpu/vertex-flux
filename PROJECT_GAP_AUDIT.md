@@ -36,3 +36,12 @@ Kaynak: Murat'ın paylaştığı “Uygulama Fikri Geliştirme” konuşması ve
 ## 29 Eylül uygulama ve kontrol notu
 
 Yeni özelliklerin veritabanı değişiklikleri uygulandı. Rol/mağaza ayrımı, yıllık tahsilat, QR durdurma/açma, PIN kilitlenmesi, çift teklif kabulü/ödeme engeli, günlük hak ve kredi iadesi testleri rollback ile geçti. Canlı URL hâlâ Deployment Paused; Vercel bağlantısında takım listesi boş. Bu nedenle canlı dağıtım ve gerçek müşteri/ürünle arayüz testi tamamlandı sayılmıyor. Yukarıdaki açık maddeler bilinçli olarak açık bırakıldı; “tüm istekler bitti” sonucu çıkarılamaz.
+
+## 1 Ekim ödeme öncesi kontrol
+
+- Yönetim paneli ve abonelik ekranında İstanbul tarihine göre gecikmiş, bugün vadeli ve 7 gün içinde vadeli ödeme uyarıları eklendi. Müşteri abonelikleri için günlük salt okunur otomasyon kuruldu; Vercel fatura takibi değildir.
+- QR yönlendirmesinin hata yanıtları da no-store oldu; kullanıcı adı/parola içeren ve bozuk HTTPS hedefleri reddedilir.
+- Kimliği doğrulanmamış video servis isteği ekranda açık uyarıyla gösterilir; ikinci ücretli üretim otomatik başlatılmaz. Sağlayıcıdaki belirsiz işin kurtarılması işlem kaydı erişimi gerektirir; tamamlandı sayılmaz.
+- Kuyum özel Piyasa ekranına manuel 24 ayar saf gram fiyatı, metal ağırlığı, ayar, toplam işçilik ve maliyet üzerine kâr hesaplayıcısı eklendi. Canlı emtia, taş/vergi/fire ve ürün fiyatı kayıt entegrasyonu değildir.
+- JavaScript sözdizimi, iki yerel test dosyası ve Supabase rollback operasyon/kredi testleri geçti. Gerçek ödeme/AI çağrısı yapılmadı.
+- Açık işler korunuyor: gerçek Ads/Meta tahmini, onaylı ticari tarife/rakip araştırması, medya dosyası yedeği, uygulama içi mesaj/sipariş/kargo, push, ödeme checkout, canlı altın veri sağlayıcısı, gerçek müşteri içerikleri, özel QR alan adı ve canlı arayüz/provider testi.
