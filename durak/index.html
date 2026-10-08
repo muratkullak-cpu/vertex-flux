@@ -1,0 +1,398 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Durak QR Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+  /* Layout: phone-first landing a passenger sees after scanning — yellow taxi sign header, two big call buttons, info list; single deliberate taxi look */
+  :root {
+    --yellow: #FFC72C;
+    --yellow-deep: #F2B200;
+    --ink: #141414;
+    --ink-soft: #3a3a3a;
+    --paper: #FFFDF6;
+    --line: #E8E1C8;
+    --green: #1FA855;
+    --muted: #6b6658;
+    --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+    --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+    color-scheme: light;
+  }
+  body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+  .demo-bar { background: var(--ink); color: var(--yellow); font-size: 12.5px; text-align: center; padding-block: 7px; padding-inline: 16px; letter-spacing: 0.02em; }
+  .page { max-width: 480px; margin: 0 auto; padding-inline: 18px; padding-block: 0 40px; display: grid; gap: 22px; }
+
+  header.sign {
+    margin-inline: -18px; padding-inline: 18px; padding-block: 22px 26px;
+    background:
+      repeating-linear-gradient(90deg, var(--ink) 0 18px, var(--yellow) 18px 36px) top / 100% 8px no-repeat,
+      var(--yellow);
+    display: grid; gap: 10px;
+  }
+  .langs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .langs button {
+    font: 600 13px var(--body); border: 2px solid var(--ink); background: transparent; color: var(--ink);
+    padding: 5px 11px; border-radius: 999px; cursor: pointer;
+  }
+  .langs button[aria-pressed="true"] { background: var(--ink); color: var(--yellow); }
+  .langs button:focus-visible, .btn:focus-visible, .save:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .taxi-word { font: 800 15px var(--display); letter-spacing: 0.32em; text-transform: uppercase; }
+  h1 { font: 800 44px/0.98 var(--display); margin: 0; text-transform: uppercase; text-wrap: balance; }
+  .open { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(31,168,85,0.22); }
+
+  .actions { display: grid; gap: 12px; }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    font: 800 24px var(--display); letter-spacing: 0.04em; text-transform: uppercase;
+    padding-block: 18px; border-radius: 14px; border: 0; cursor: pointer; width: 100%;
+    text-decoration: none;
+  }
+  .btn svg { width: 26px; height: 26px; flex: none; }
+  .btn-wa { background: var(--green); color: #fff; }
+  .btn-call { background: var(--ink); color: var(--yellow); }
+  .hint { font-size: 14px; color: var(--muted); margin: -4px 0 0; text-align: center; }
+
+  .number { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; border: 2px dashed var(--line); border-radius: 12px; padding: 12px 14px; }
+  .number b { font: 600 20px var(--display); letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+  .save { display: inline-flex; align-items: center; gap: 7px; font: 600 14px var(--body); background: var(--yellow); color: var(--ink); border: 0; border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+  .save svg { width: 17px; height: 17px; }
+
+  h2 { font: 800 18px var(--display); letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 8px; color: var(--ink-soft); }
+  ul.info { list-style: none; margin: 0; padding: 0; display: grid; }
+  ul.info li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding-block: 12px; border-bottom: 1px solid var(--line); }
+  ul.info li:last-child { border-bottom: 0; }
+  ul.info svg { width: 22px; height: 22px; margin-top: 1px; }
+  ul.info strong { display: block; font-weight: 600; }
+  ul.info span { color: var(--muted); font-size: 15px; }
+  a.map { color: var(--ink); font-weight: 600; }
+
+  .steps { display: grid; gap: 8px; counter-reset: s; padding: 0; margin: 0; list-style: none; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; }
+  .steps li::before { content: counter(s); font: 800 18px var(--display); background: var(--yellow); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; }
+
+  footer { font-size: 12.5px; color: var(--muted); text-align: center; border-top: 1px solid var(--line); padding-top: 16px; }
+  footer b { color: var(--ink); letter-spacing: 0.12em; }
+
+  .sheet-wrap { position: fixed; inset: 0; background: rgba(20,20,20,0.55); display: grid; align-items: end; justify-items: center; z-index: 10; }
+  .sheet {
+    background: #fff; width: min(480px, 100%); border-radius: 18px 18px 0 0;
+    padding: 20px 18px calc(22px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px;
+  }
+  .sheet h3 { font: 800 22px var(--display); text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
+  .sheet p { margin: 0; color: var(--ink-soft); }
+  .perm { border: 2px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 12px; }
+  .perm-q { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; }
+  .perm-q svg { width: 22px; height: 22px; flex: none; color: #2E6BE6; }
+  .perm-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .perm-btns button, .sheet-close { font: 600 15px var(--body); border-radius: 10px; padding: 10px; cursor: pointer; border: 2px solid var(--ink); background: #fff; color: var(--ink); }
+  .perm-btns button.allow { background: var(--ink); color: #fff; }
+  .chat { background: #ECE5DD; border-radius: 14px; padding: 14px; display: grid; gap: 6px; }
+  .chat-head { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .bubble { justify-self: end; background: #DCF8C6; color: #111; border-radius: 10px 10px 2px 10px; padding: 9px 11px; max-width: 92%; font-size: 15px; white-space: pre-line; overflow-wrap: anywhere; }
+  .bubble a { color: #1a5fd6; }
+  .note { font-size: 13.5px; color: var(--muted); }
+  .sheet-close { background: var(--yellow); border-color: var(--yellow); }
+  .toast {
+    position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    background: var(--ink); color: #fff; font-size: 14.5px; padding: 12px 16px; border-radius: 12px;
+    width: min(440px, calc(100% - 32px)); box-shadow: 0 8px 28px rgba(0,0,0,0.25); text-align: center;
+  }
+</style>
+
+<div class="demo-bar" id="demoBar"></div>
+
+<main class="page">
+  <header class="sign">
+    <div class="taxi-word">Taxi · Такси</div>
+    <h1 id="title"></h1>
+    <div class="open"><span class="dot" aria-hidden="true"></span><span id="open"></span></div>
+    <div class="langs" role="group" aria-label="Dil / Language">
+      <button type="button" id="lang-tr" data-lang="tr">Türkçe</button>
+      <button type="button" id="lang-en" data-lang="en">English</button>
+      <button type="button" id="lang-ru" data-lang="ru">Русский</button>
+      <button type="button" id="lang-de" data-lang="de">Deutsch</button>
+    </div>
+  </header>
+
+  <section class="actions" aria-label="Taksi çağır">
+    <button type="button" class="btn btn-wa" id="btnWa">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.4.8 3.2.6a2.8 2.8 0 0 0 1.8-1.3 2.3 2.3 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>
+      <span id="waLabel"></span>
+    </button>
+    <button type="button" class="btn btn-call" id="btnCall">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.2 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.3 1z"/></svg>
+      <span id="callLabel"></span>
+    </button>
+    <p class="hint" id="hint"></p>
+    <div class="number">
+      <b>+90 5XX XXX XX XX</b>
+      <button type="button" class="save" id="saveBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 20a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg>
+        <span id="saveLabel"></span>
+      </button>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="howTitle"></h2>
+    <ol class="steps">
+      <li id="step1"></li>
+      <li id="step2"></li>
+      <li id="step3"></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2 id="infoTitle"></h2>
+    <ul class="info">
+      <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <div><strong id="locLabel"></strong><span>Konyaaltı, Antalya · </span><a class="map" id="mapLink" href="https://www.google.com/maps/search/?api=1&query=Konyaalt%C4%B1%20Antalya" target="_blank" rel="noopener"></a></div>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <div><strong id="hoursLabel"></strong><span id="hoursVal"></span></div>
+      </li>
+    </ul>
+  </section>
+
+  <footer><span id="footerText"></span> <b>VERTEX</b></footer>
+</main>
+
+<div class="sheet-wrap" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h3 id="sheetTitle"></h3>
+    <div class="perm" id="permBox">
+      <div class="perm-q">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+        <span id="permQ"></span>
+      </div>
+      <div class="perm-btns">
+        <button type="button" id="permDeny"></button>
+        <button type="button" class="allow" id="permAllow"></button>
+      </div>
+    </div>
+    <div class="chat" id="chatBox" hidden>
+      <div class="chat-head" id="chatHead"></div>
+      <div class="bubble" id="bubble"></div>
+    </div>
+    <p class="note" id="sheetNote"></p>
+    <button type="button" class="sheet-close" id="sheetClose"></button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+  const T = {
+    tr: {
+      demo: "Örnek sayfa · Durak adı ve numara temsilidir",
+      title: "Konyaaltı Sahil Taksi",
+      open: "7/24 açık · Şu an hizmette",
+      wa: "WhatsApp'tan çağır",
+      call: "Hemen ara",
+      hint: "Ortalama 5-10 dakikada yanınızdayız.",
+      save: "Rehbere kaydet",
+      demoSave: "Örnek: Gerçek sayfada durak, adı ve numarasıyla telefon rehberine eklenir.",
+      howTitle: "Nasıl çalışır?",
+      s1: "WhatsApp butonuna dokunun.",
+      s2: "Konum iznine \"İzin ver\" deyin; konumunuz mesaja eklenir.",
+      s3: "Gönder'e basın, en yakın aracımız size yönlendirilir.",
+      sheetTitle: "Böyle çalışır",
+      permQ: "\"Konumunuzu paylaşalım mı?\" (telefonunuz bunu sorar)",
+      allow: "İzin ver",
+      deny: "İzin verme",
+      chatHead: "Durağa gidecek WhatsApp mesajı:",
+      noteAllow: "Örnek: Gerçek sayfada WhatsApp bu mesajla açılır, yolcu sadece Gönder'e basar.",
+      noteDeny: "İzin verilmese de mesaj gider; yolcu konumunu WhatsApp'tan kendisi ekler.",
+      close: "Tamam",
+      infoTitle: "Durak bilgisi",
+      loc: "Konum",
+      map: "Haritada aç",
+      hours: "Çalışma saatleri",
+      hoursVal: "Her gün, 24 saat",
+      footer: "Bu sayfa QR ile açıldı ·",
+      demoWa: "Örnek: Gerçek sayfada bu buton durağın WhatsApp'ını hazır mesajla açar.",
+      demoCall: "Örnek: Gerçek sayfada bu buton durağı doğrudan arar."
+    },
+    en: {
+      demo: "Sample page · Stand name and number are placeholders",
+      title: "Konyaaltı Beach Taxi",
+      open: "Open 24/7 · Available now",
+      wa: "Call via WhatsApp",
+      call: "Call now",
+      hint: "We usually arrive within 5-10 minutes.",
+      save: "Save to contacts",
+      demoSave: "Sample: on the real page the taxi stand is added to your phone contacts.",
+      howTitle: "How it works",
+      s1: "Tap the WhatsApp button.",
+      s2: "Tap \"Allow\" for location; it is added to your message.",
+      s3: "Press Send, our nearest car is sent to you.",
+      sheetTitle: "How it works",
+      permQ: "\"Share your location?\" (your phone asks this)",
+      allow: "Allow",
+      deny: "Don't allow",
+      chatHead: "WhatsApp message sent to the taxi stand:",
+      noteAllow: "Sample: on the real page WhatsApp opens with this message, the passenger just presses Send.",
+      noteDeny: "Without permission the message still goes out; the passenger adds the location in WhatsApp.",
+      close: "OK",
+      infoTitle: "Taxi stand info",
+      loc: "Location",
+      map: "Open in Maps",
+      hours: "Hours",
+      hoursVal: "Every day, 24 hours",
+      footer: "You opened this page with a QR code ·",
+      demoWa: "Sample: on the real page this opens the stand's WhatsApp with a ready message.",
+      demoCall: "Sample: on the real page this calls the taxi stand directly."
+    },
+    ru: {
+      demo: "Пример страницы · Название и номер условные",
+      title: "Такси Коньяалты Пляж",
+      open: "Круглосуточно · Сейчас работаем",
+      wa: "Вызвать через WhatsApp",
+      call: "Позвонить",
+      hint: "Обычно приезжаем за 5-10 минут.",
+      save: "В контакты",
+      demoSave: "Пример: на настоящей странице стоянка такси добавится в контакты телефона.",
+      howTitle: "Как это работает",
+      s1: "Нажмите кнопку WhatsApp.",
+      s2: "Разрешите доступ к геолокации — она добавится в сообщение.",
+      s3: "Нажмите «Отправить», к вам приедет ближайшая машина.",
+      sheetTitle: "Как это работает",
+      permQ: "«Поделиться геолокацией?» (спросит ваш телефон)",
+      allow: "Разрешить",
+      deny: "Не разрешать",
+      chatHead: "Сообщение в WhatsApp для стоянки такси:",
+      noteAllow: "Пример: на настоящей странице WhatsApp откроется с этим сообщением, останется нажать «Отправить».",
+      noteDeny: "Без разрешения сообщение всё равно уйдёт; геолокацию можно добавить в WhatsApp.",
+      close: "Понятно",
+      infoTitle: "О стоянке такси",
+      loc: "Адрес",
+      map: "Открыть на карте",
+      hours: "Часы работы",
+      hoursVal: "Ежедневно, круглосуточно",
+      footer: "Вы открыли страницу по QR-коду ·",
+      demoWa: "Пример: на настоящей странице кнопка откроет WhatsApp стоянки с готовым сообщением.",
+      demoCall: "Пример: на настоящей странице кнопка сразу позвонит на стоянку."
+    },
+    de: {
+      demo: "Beispielseite · Name und Nummer sind Platzhalter",
+      title: "Taxi Konyaaltı Strand",
+      open: "Rund um die Uhr · Jetzt verfügbar",
+      wa: "Per WhatsApp rufen",
+      call: "Jetzt anrufen",
+      hint: "Meist sind wir in 5-10 Minuten da.",
+      save: "In Kontakte speichern",
+      demoSave: "Beispiel: Auf der echten Seite wird der Taxistand in Ihren Kontakten gespeichert.",
+      howTitle: "So funktioniert's",
+      s1: "Tippen Sie auf den WhatsApp-Button.",
+      s2: "Standort \"Erlauben\" – er wird zur Nachricht hinzugefügt.",
+      s3: "Auf Senden tippen, unser nächstes Taxi kommt zu Ihnen.",
+      sheetTitle: "So funktioniert's",
+      permQ: "\"Standort teilen?\" (Ihr Telefon fragt danach)",
+      allow: "Erlauben",
+      deny: "Nicht erlauben",
+      chatHead: "WhatsApp-Nachricht an den Taxistand:",
+      noteAllow: "Beispiel: Auf der echten Seite öffnet WhatsApp mit dieser Nachricht, man tippt nur auf Senden.",
+      noteDeny: "Ohne Erlaubnis geht die Nachricht trotzdem raus; den Standort fügt man in WhatsApp hinzu.",
+      close: "OK",
+      infoTitle: "Taxistand",
+      loc: "Standort",
+      map: "In Karten öffnen",
+      hours: "Öffnungszeiten",
+      hoursVal: "Täglich, 24 Stunden",
+      footer: "Sie haben diese Seite per QR-Code geöffnet ·",
+      demoWa: "Beispiel: Auf der echten Seite öffnet dieser Button WhatsApp mit fertiger Nachricht.",
+      demoCall: "Beispiel: Auf der echten Seite ruft dieser Button den Taxistand direkt an."
+    }
+  };
+
+  // Phone language decides the first view: tr/en/ru/de by prefix (de-AT -> de), anything else -> English.
+  function detectLang() {
+    const list = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ""];
+    for (const l of list) {
+      const code = String(l).toLowerCase().slice(0, 2);
+      if (T[code]) return code;
+    }
+    return "en";
+  }
+
+  let lang = detectLang();
+  try { const saved = localStorage.getItem("durak-lang"); if (saved && T[saved]) lang = saved; } catch (e) {}
+
+  const $ = (id) => document.getElementById(id);
+  function render() {
+    const t = T[lang];
+    document.documentElement.lang = lang;
+    $("demoBar").textContent = t.demo;
+    $("title").textContent = t.title;
+    $("open").textContent = t.open;
+    $("waLabel").textContent = t.wa;
+    $("callLabel").textContent = t.call;
+    $("hint").textContent = t.hint;
+    $("saveLabel").textContent = t.save;
+    $("howTitle").textContent = t.howTitle;
+    $("step1").textContent = t.s1;
+    $("step2").textContent = t.s2;
+    $("step3").textContent = t.s3;
+    $("infoTitle").textContent = t.infoTitle;
+    $("locLabel").textContent = t.loc;
+    $("mapLink").textContent = t.map;
+    $("hoursLabel").textContent = t.hours;
+    $("hoursVal").textContent = t.hoursVal;
+    $("footerText").textContent = t.footer;
+    document.querySelectorAll(".langs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const el = $("toast");
+    el.textContent = msg;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 3400);
+  }
+
+  document.querySelectorAll(".langs button").forEach(b => b.addEventListener("click", () => {
+    lang = b.dataset.lang;
+    try { localStorage.setItem("durak-lang", lang); } catch (e) {}
+    render();
+  }));
+  // Demo of the real flow: phone asks for location, then the Turkish message the stand receives.
+  const MSG_LOC = "Merhaba, taksi istiyorum.\n📍 Konumum: https://maps.google.com/?q=36.8608,30.6370";
+  const MSG_NOLOC = "Merhaba, taksi istiyorum.\n📍 Konumumu WhatsApp'tan şimdi gönderiyorum.";
+  function openSheet() {
+    const t = T[lang];
+    $("sheetTitle").textContent = t.sheetTitle;
+    $("permQ").textContent = t.permQ;
+    $("permAllow").textContent = t.allow;
+    $("permDeny").textContent = t.deny;
+    $("chatHead").textContent = t.chatHead;
+    $("sheetClose").textContent = t.close;
+    $("sheetNote").textContent = "";
+    $("permBox").hidden = false;
+    $("chatBox").hidden = true;
+    $("sheet").hidden = false;
+    $("permAllow").focus();
+  }
+  function showMessage(withLoc) {
+    const t = T[lang];
+    $("permBox").hidden = true;
+    $("bubble").textContent = withLoc ? MSG_LOC : MSG_NOLOC;
+    $("chatBox").hidden = false;
+    $("sheetNote").textContent = withLoc ? t.noteAllow : t.noteDeny;
+    $("sheetClose").focus();
+  }
+  $("btnWa").addEventListener("click", openSheet);
+  $("permAllow").addEventListener("click", () => showMessage(true));
+  $("permDeny").addEventListener("click", () => showMessage(false));
+  $("sheetClose").addEventListener("click", () => { $("sheet").hidden = true; $("btnWa").focus(); });
+  $("sheet").addEventListener("click", (e) => { if (e.target === $("sheet")) $("sheet").hidden = true; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("sheet").hidden = true; });
+  $("btnCall").addEventListener("click", () => toast(T[lang].demoCall));
+  $("saveBtn").addEventListener("click", () => toast(T[lang].demoSave));
+
+  render();
+</script>
+
+</body></html>
