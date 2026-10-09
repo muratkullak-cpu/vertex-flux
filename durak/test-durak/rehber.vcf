@@ -1,0 +1,10 @@
+BEGIN:VCARD
+VERSION:3.0
+N:;Test Taksi Durağı;;;
+FN:Test Taksi Durağı
+ORG:Test Taksi Durağı
+TEL;TYPE=CELL,VOICE:+905320000000
+ADR;TYPE=WORK:;;Konyaaltı\, Antalya;;;;
+URL:https://maps.google.com/?q=36.8608,30.6370
+NOTE:Taksi · VERTEX
+END:VCARD

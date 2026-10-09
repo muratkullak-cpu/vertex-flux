@@ -1,0 +1,178 @@
+<style>
+  .logo { width: 64px; height: 64px; border-radius: 14px; object-fit: cover; background: #fff; border: 2px solid var(--ink); }
+  .btn[aria-busy="true"] { opacity: .75; cursor: progress; }
+  a.save { text-decoration: none; }
+  .spin { width: 22px; height: 22px; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: sp .8s linear infinite; flex: none; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
+</style>
+
+<main class="page">
+  <header class="sign">
+    <div class="taxi-word" style="text-transform:none">TAXI · ТАКСИ</div>
+    <img class="logo" id="logo" alt="" hidden>
+    <h1 id="title"></h1>
+    <div class="open"><span class="dot" aria-hidden="true"></span><span id="open"></span></div>
+    <div class="langs" role="group" aria-label="Dil / Language">
+      <button type="button" data-lang="tr">Türkçe</button>
+      <button type="button" data-lang="en">English</button>
+      <button type="button" data-lang="ru">Русский</button>
+      <button type="button" data-lang="de">Deutsch</button>
+    </div>
+  </header>
+
+  <section class="actions" aria-label="Taxi">
+    <button type="button" class="btn btn-wa" id="btnWa">
+      <svg id="waIcon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.4.8 3.2.6a2.8 2.8 0 0 0 1.8-1.3 2.3 2.3 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>
+      <span class="spin" id="waSpin" hidden></span>
+      <span id="waLabel"></span>
+    </button>
+    <a class="btn btn-call" id="btnCall">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.2 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.3 1z"/></svg>
+      <span id="callLabel"></span>
+    </a>
+    <p class="hint" id="hint" hidden></p>
+    <div class="number">
+      <b id="numText"></b>
+      <a class="save" id="saveBtn" href="rehber.vcf" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 20a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg>
+        <span id="saveLabel"></span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="howTitle"></h2>
+    <ol class="steps"><li id="step1"></li><li id="step2"></li><li id="step3"></li></ol>
+  </section>
+
+  <section>
+    <h2 id="infoTitle"></h2>
+    <ul class="info">
+      <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <div><strong id="locLabel"></strong><span id="addr"></span> · <a class="map" id="mapLink" target="_blank" rel="noopener"></a></div>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <div><strong id="hoursLabel"></strong><span id="hoursVal"></span></div>
+      </li>
+    </ul>
+  </section>
+
+  <footer><span id="footerText"></span> <b>VERTEX</b></footer>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+  /* ===== DURAK BİLGİLERİ (her durak için sadece burası değişir) ===== */
+  const DURAK = /*__DURAK__*/null;
+  /* ================================================================ */
+
+  const T = {
+    tr: { open24: "7/24 açık · Şu an hizmette", openDaily: "Her gün", wa: "WhatsApp'tan çağır", locating: "Konum alınıyor…", call: "Hemen ara",
+          hint: (m) => `Ortalama ${m} dakikada yanınızdayız.`, save: "Rehbere kaydet", howTitle: "Nasıl çalışır?",
+          s1: "WhatsApp butonuna dokunun.", s2: "Konum iznine \"İzin ver\" deyin; konumunuz mesaja eklenir.", s3: "WhatsApp'ta Gönder'e basın, aracımız size yönlendirilir.",
+          infoTitle: "Durak bilgisi", loc: "Konum", map: "Haritada aç", hours: "Çalışma saatleri", h24: "Her gün, 24 saat",
+          footer: "Bu sayfa QR ile açıldı ·", noWa: "WhatsApp açılmadıysa lütfen arayın." },
+    en: { open24: "Open 24/7 · Available now", openDaily: "Every day", wa: "Call via WhatsApp", locating: "Getting location…", call: "Call now",
+          hint: (m) => `We usually arrive within ${m} minutes.`, save: "Save to contacts", howTitle: "How it works",
+          s1: "Tap the WhatsApp button.", s2: "Tap \"Allow\" for location; it is added to your message.", s3: "Press Send in WhatsApp, a car is sent to you.",
+          infoTitle: "Taxi stand info", loc: "Location", map: "Open in Maps", hours: "Hours", h24: "Every day, 24 hours",
+          footer: "You opened this page with a QR code ·", noWa: "If WhatsApp did not open, please call." },
+    ru: { open24: "Круглосуточно · Сейчас работаем", openDaily: "Ежедневно", wa: "Вызвать через WhatsApp", locating: "Определяем местоположение…", call: "Позвонить",
+          hint: (m) => `Обычно приезжаем за ${m} минут.`, save: "В контакты", howTitle: "Как это работает",
+          s1: "Нажмите кнопку WhatsApp.", s2: "Разрешите доступ к геолокации — она добавится в сообщение.", s3: "Нажмите «Отправить» в WhatsApp, к вам приедет машина.",
+          infoTitle: "О стоянке такси", loc: "Адрес", map: "Открыть на карте", hours: "Часы работы", h24: "Ежедневно, круглосуточно",
+          footer: "Вы открыли страницу по QR-коду ·", noWa: "Если WhatsApp не открылся, позвоните." },
+    de: { open24: "Rund um die Uhr · Jetzt verfügbar", openDaily: "Täglich", wa: "Per WhatsApp rufen", locating: "Standort wird ermittelt…", call: "Jetzt anrufen",
+          hint: (m) => `Meist sind wir in ${m} Minuten da.`, save: "In Kontakte speichern", howTitle: "So funktioniert's",
+          s1: "Tippen Sie auf den WhatsApp-Button.", s2: "Standort \"Erlauben\" – er wird zur Nachricht hinzugefügt.", s3: "In WhatsApp auf Senden tippen, ein Taxi kommt zu Ihnen.",
+          infoTitle: "Taxistand", loc: "Standort", map: "In Karten öffnen", hours: "Öffnungszeiten", h24: "Täglich, 24 Stunden",
+          footer: "Sie haben diese Seite per QR-Code geöffnet ·", noWa: "Falls WhatsApp nicht geöffnet wurde, bitte anrufen." }
+  };
+  const LANG_NAME = { tr: "Türkçe", en: "İngilizce", ru: "Rusça", de: "Almanca" };
+
+  function detectLang() {
+    const list = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || ""];
+    for (const l of list) { const c = String(l).toLowerCase().slice(0, 2); if (T[c]) return c; }
+    return "en";
+  }
+  let lang = detectLang();
+  try { const s = localStorage.getItem("durak-lang"); if (s && T[s]) lang = s; } catch (e) {}
+
+  const $ = (id) => document.getElementById(id);
+  const is24 = !DURAK.saat || DURAK.saat === "24";
+
+  function render() {
+    const t = T[lang];
+    document.documentElement.lang = lang;
+    $("title").textContent = DURAK.ad;
+    $("open").textContent = is24 ? t.open24 : `${t.openDaily} ${DURAK.saat}`;
+    $("waLabel").textContent = t.wa;
+    $("callLabel").textContent = t.call;
+    $("hint").hidden = !DURAK.bekleme;
+    if (DURAK.bekleme) $("hint").textContent = t.hint(DURAK.bekleme);
+    $("saveLabel").textContent = t.save;
+    $("howTitle").textContent = t.howTitle;
+    $("step1").textContent = t.s1; $("step2").textContent = t.s2; $("step3").textContent = t.s3;
+    $("infoTitle").textContent = t.infoTitle;
+    $("locLabel").textContent = t.loc;
+    $("mapLink").textContent = t.map;
+    $("hoursLabel").textContent = t.hours;
+    $("hoursVal").textContent = is24 ? t.h24 : `${t.openDaily} ${DURAK.saat}`;
+    $("footerText").textContent = t.footer;
+    document.querySelectorAll(".langs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  }
+
+  // Static parts from DURAK
+  $("numText").textContent = DURAK.telefonGorunen;
+  $("btnCall").href = "tel:" + DURAK.telefon;
+  $("addr").textContent = DURAK.adres;
+  $("mapLink").href = DURAK.harita;
+  if (DURAK.logo) { $("logo").src = DURAK.logo; $("logo").alt = DURAK.ad; $("logo").hidden = false; }
+
+  let toastTimer;
+  function toast(msg) { const el = $("toast"); el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 4000); }
+
+  document.querySelectorAll(".langs button").forEach(b => b.addEventListener("click", () => {
+    lang = b.dataset.lang; try { localStorage.setItem("durak-lang", lang); } catch (e) {} render();
+  }));
+
+  // WhatsApp: ask phone for location (max 8 s), then open WhatsApp with a Turkish message to the stand.
+  function waUrl(coords) {
+    let msg = "Merhaba, taksi istiyorum.";
+    if (coords) msg += `\n📍 Konumum: https://maps.google.com/?q=${coords.latitude.toFixed(6)},${coords.longitude.toFixed(6)}`;
+    else msg += "\n📍 Konumumu WhatsApp'tan şimdi gönderiyorum.";
+    if (lang !== "tr") msg += `\n(Yolcunun dili: ${LANG_NAME[lang]})`;
+    return `https://wa.me/${DURAK.whatsapp}?text=${encodeURIComponent(msg)}`;
+  }
+  let busy = false;
+  function setBusy(on) {
+    busy = on; $("btnWa").setAttribute("aria-busy", String(on));
+    $("waSpin").hidden = !on; $("waIcon").style.display = on ? "none" : "";
+    $("waLabel").textContent = on ? T[lang].locating : T[lang].wa;
+  }
+  function go(coords) {
+    setBusy(false);
+    window.location.href = waUrl(coords);
+    setTimeout(() => { if (document.visibilityState === "visible") toast(T[lang].noWa); }, 3500);
+  }
+  $("btnWa").addEventListener("click", () => {
+    if (busy) return;
+    if (!("geolocation" in navigator) || !window.isSecureContext) { go(null); return; }
+    setBusy(true);
+    let done = false;
+    const finish = (c) => { if (done) return; done = true; go(c); };
+    const guard = setTimeout(() => finish(null), 9000);
+    navigator.geolocation.getCurrentPosition(
+      (p) => { clearTimeout(guard); finish(p.coords); },
+      () => { clearTimeout(guard); finish(null); },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  });
+
+  render();
+</script>
+</body></html>
