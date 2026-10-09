@@ -102,6 +102,7 @@
   .logo { width: 64px; height: 64px; border-radius: 14px; object-fit: cover; background: #fff; border: 2px solid var(--ink); }
   .btn[aria-busy="true"] { opacity: .75; cursor: progress; }
   a.save { text-decoration: none; }
+  .banner { width: 100%; border-radius: 12px; border: 2px solid var(--ink); display: block; }
   .spin { width: 22px; height: 22px; border: 3px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: sp .8s linear infinite; flex: none; }
   @keyframes sp { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } }
@@ -111,8 +112,9 @@
   <header class="sign">
     <div class="taxi-word" style="text-transform:none">TAXI · ТАКСИ</div>
     <img class="logo" id="logo" alt="" hidden>
+    <img class="banner" id="banner" alt="" hidden>
     <h1 id="title"></h1>
-    <div class="open"><span class="dot" aria-hidden="true"></span><span id="open"></span></div>
+    <div class="open" id="openRow"><span class="dot" aria-hidden="true"></span><span id="open"></span></div>
     <div class="langs" role="group" aria-label="Dil / Language">
       <button type="button" data-lang="tr">Türkçe</button>
       <button type="button" data-lang="en">English</button>
@@ -153,7 +155,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
         <div><strong id="locLabel"></strong><span id="addr"></span> · <a class="map" id="mapLink" target="_blank" rel="noopener"></a></div>
       </li>
-      <li>
+      <li id="hoursRow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
         <div><strong id="hoursLabel"></strong><span id="hoursVal"></span></div>
       </li>
@@ -167,7 +169,7 @@
 
 <script>
   /* ===== DURAK BİLGİLERİ (her durak için sadece burası değişir) ===== */
-  const DURAK = {"ad": "Test Taksi Durağı", "telefon": "+905320000000", "telefonGorunen": "+90 532 000 00 00", "whatsapp": "905320000000", "adres": "Konyaaltı, Antalya", "harita": "https://maps.google.com/?q=36.8608,30.6370", "saat": "24", "bekleme": "5-10", "logo": null};
+  const DURAK = {"ad": "Test Taksi Durağı", "telefon": "+905320000000", "telefonGorunen": "+90 532 000 00 00", "whatsapp": "905320000000", "adres": "Konyaaltı, Antalya", "harita": "https://maps.google.com/?q=36.8608,30.6370", "saat": "24", "bekleme": "5-10", "logo": null, "gorsel": null};
   /* ================================================================ */
 
   const T = {
@@ -203,13 +205,15 @@
   try { const s = localStorage.getItem("durak-lang"); if (s && T[s]) lang = s; } catch (e) {}
 
   const $ = (id) => document.getElementById(id);
-  const is24 = !DURAK.saat || DURAK.saat === "24";
+  const noHours = DURAK.saat === "gizli";
+  const is24 = !noHours && (!DURAK.saat || DURAK.saat === "24");
 
   function render() {
     const t = T[lang];
     document.documentElement.lang = lang;
     $("title").textContent = DURAK.ad;
-    $("open").textContent = is24 ? t.open24 : `${t.openDaily} ${DURAK.saat}`;
+    if (noHours) { $("openRow")?.remove(); $("hoursRow")?.remove(); }
+    if ($("open")) $("open").textContent = is24 ? t.open24 : `${t.openDaily} ${DURAK.saat}`;
     $("waLabel").textContent = t.wa;
     $("callLabel").textContent = t.call;
     $("hint").hidden = !DURAK.bekleme;
@@ -220,8 +224,8 @@
     $("infoTitle").textContent = t.infoTitle;
     $("locLabel").textContent = t.loc;
     $("mapLink").textContent = t.map;
-    $("hoursLabel").textContent = t.hours;
-    $("hoursVal").textContent = is24 ? t.h24 : `${t.openDaily} ${DURAK.saat}`;
+    if ($("hoursRow")) { $("hoursLabel").textContent = t.hours;
+    $("hoursVal").textContent = is24 ? t.h24 : `${t.openDaily} ${DURAK.saat}`; }
     $("footerText").textContent = t.footer;
     document.querySelectorAll(".langs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
   }
@@ -231,6 +235,7 @@
   $("btnCall").href = "tel:" + DURAK.telefon;
   $("addr").textContent = DURAK.adres;
   $("mapLink").href = DURAK.harita;
+  if (DURAK.gorsel) { $("banner").src = DURAK.gorsel; $("banner").alt = DURAK.ad; $("banner").hidden = false; }
   if (DURAK.logo) { $("logo").src = DURAK.logo; $("logo").alt = DURAK.ad; $("logo").hidden = false; }
 
   let toastTimer;
