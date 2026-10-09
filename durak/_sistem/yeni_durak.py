@@ -34,7 +34,7 @@ def main(path):
     if bekleme and not re.fullmatch(r"\d{1,2}(-\d{1,2})?", str(bekleme)):
         fail("bekleme '5-10' gibi olmalı ya da boş")
     saat = d.get("saat") or "24"
-    if saat != "24" and not re.fullmatch(r"\d{2}:\d{2}[–-]\d{2}:\d{2}", saat):
+    if saat not in ("24", "gizli") and not re.fullmatch(r"\d{2}:\d{2}[–-]\d{2}:\d{2}", saat):
         fail("saat '24' ya da '08:00-02:00' gibi olmalı")
 
     gorunen = f"+90 {digits[2:5]} {digits[5:8]} {digits[8:10]} {digits[10:12]}"
@@ -42,6 +42,7 @@ def main(path):
         "ad": d["ad"], "telefon": "+" + digits, "telefonGorunen": gorunen, "whatsapp": wa,
         "adres": d["adres"], "harita": d["harita"], "saat": saat.replace("-", "–"),
         "bekleme": str(bekleme) if bekleme else None, "logo": d.get("logo") or None,
+        "gorsel": d.get("gorsel") or None,
     }
     css = (HERE / "_css.txt").read_text(encoding="utf-8")
     body = (HERE / "_body.html").read_text(encoding="utf-8")
@@ -56,7 +57,8 @@ def main(path):
         return s.replace("\\", "\\\\").replace(",", "\\,").replace(";", "\\;").replace("\n", "\\n")
     vcf = ("BEGIN:VCARD\r\nVERSION:3.0\r\n"
            f"N:;{vesc(d['ad'])};;;\r\nFN:{vesc(d['ad'])}\r\nORG:{vesc(d['ad'])}\r\n"
-           f"TEL;TYPE=CELL,VOICE:+{digits}\r\n"
+           f"TEL;TYPE={'CELL' if digits[2]=='5' else 'WORK'},VOICE:+{digits}\r\n"
+           + (f"TEL;TYPE=CELL,VOICE:+{wa}\r\n" if wa != digits else "") +
            f"ADR;TYPE=WORK:;;{vesc(d['adres'])};;;;\r\n"
            f"URL:{d['harita']}\r\nNOTE:Taksi · VERTEX\r\nEND:VCARD\r\n")
 
