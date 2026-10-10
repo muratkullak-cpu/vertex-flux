@@ -29,7 +29,7 @@
 - Barış Taksi durak sayfası canlıda: https://vertex-flux.vercel.app/durak/baris-taksi/ (4 dil, WhatsApp konumlu çağırma, nöbetçi eczane, hastane, 112). Yeni durak: `durak/_sistem/yeni_durak.py <json>`.
 
 ## Sıradaki işler (öncelik sırasıyla)
-1. **Barış Taksi QR etiketi:** Baskıya hazır tasarım (QR + "Okut, taksi çağır" 4 dil + VERTEX logosu). Dinamik QR `/q/<slug>` üzerinden olsun ki adres değişse de etiket değişmesin.
+1. ✅ **Barış Taksi QR etiketi** hazır: `durak/baris-taksi/baski/` (10×15 cm PDF/PNG, QR okuma testi geçti). QR şimdilik doğrudan durak sayfasına gidiyor; Murat panelde dinamik QR açarsa etiket `/q/<slug>` ile yeniden üretilir.
 2. **3D dijital ikiz:** Murat X5 ile bir ev çekecek. Gaussian splat modeli + satış sayfası yapılacak. Çekim gelene kadar sayfa iskeleti hazırlanabilir.
 3. **beraflx → "Antalya'yı havadan":** Profil metni, 30 günlük paylaşım planı, 4 dilde açıklamalar.
 4. **Google yorum paketi sayfası** (VERTEX'te yorum QR'ı zaten var).
