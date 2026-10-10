@@ -36,6 +36,6 @@
 5. Ticari drone işleri için **P1 lisansı** (SHGM, 30 Temmuz 2026 talimatı) alınana kadar drone ücretli işte satılmaz.
 
 ## Bilinen kısıtlar
-- Claude kendi yetkilerini değiştiremez. Murat'ın hesaplarına (Vercel, Instagram, Meta) giriş yapamaz. Bunun için Mac'te "Claude in Chrome" eklentisi önerildi.
+- Claude kendi yetkilerini değiştiremez. Murat'ın hesaplarına (Vercel, Instagram, Meta) giriş yapamaz. Bunun için Mac'teki Chrome'da "Claude in Chrome" eklentisi kurulu ve test edildi (10 Ekim 2026); hesap içi buton işleri için Murat'a o panele yapıştıracağı hazır komut yazılır.
 - Durağa izinsiz yapıştırma cezalı (Kabahatler K. 42). Etiketler sadece izinli yerlere (durağın kendi alanı) asılır.
 - Eczanelerden reklam parası alınamaz (deontoloji). Nöbetçi eczane bölümü Google Haritalar aramasıyla çalışır, veri kazıma yok.
