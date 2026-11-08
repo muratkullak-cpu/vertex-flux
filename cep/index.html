@@ -67,6 +67,7 @@ const tr = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); retu
 const num = (v) => { const s = String(v == null ? "" : v).trim().replace(/\s/g, "").replace(/TL|₺/gi, ""); if (!s) return NaN; const t = /,\d{1,2}$/.test(s) ? s.replace(/\./g, "").replace(",", ".") : s.replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", "."); return parseFloat(t); };
 function toast(m) { const t = document.createElement("div"); t.className = "toast"; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
 const bak = (m, upto) => { let b = 0; (m.hareketler || []).forEach((h, i) => { if (upto !== undefined && i > upto) return; b += h.t === "odeme" ? h.tutar : -h.tutar; }); return Math.round(b * 100) / 100; };
+const bk = (m) => m.bakiyeli !== false;
 const bakCls = (b) => (b < 0 ? "neg" : "pos");
 
 /* ---------- ekranlar ---------- */
@@ -78,18 +79,18 @@ function ana() {
   const L = S.musteriler;
   return `<div class="grid2" style="margin-bottom:12px"><button class="pri" data-go="odeme">＋ Ödeme aldım</button><button class="blue" data-go="is">✓ Bilgilendirme</button></div>
   <div class="row" style="margin:6px 0 8px"><h2 class="sp" style="margin:0">Müşteriler</h2><button class="sm" data-go="yeni">＋ Yeni</button></div>
-  ${L.length ? L.map((m) => { const b = bak(m); return `<div class="card" data-go="musteri" data-id="${m.id}" style="cursor:pointer"><div class="row"><div class="sp"><b>${esc(m.ad)}</b><div class="mut">${(m.hareketler || []).length} kayıt${m.tel ? " · " + esc(m.tel) : ""}</div></div><div class="big ${bakCls(b)}">${para(b)}</div></div></div>`; }).join("") : `<div class="card mut">Henüz müşteri yok. "＋ Yeni" ile ekle ya da doğrudan "Ödeme aldım"a bas; müşteri orada da açılır.</div>`}
+  ${L.length ? L.map((m) => { const b = bak(m); return `<div class="card" data-go="musteri" data-id="${m.id}" style="cursor:pointer"><div class="row"><div class="sp"><b>${esc(m.ad)}</b><div class="mut">${(m.hareketler || []).length} kayıt${m.tel ? " · " + esc(m.tel) : ""}</div></div>${bk(m) ? `<div class="big ${bakCls(b)}">${para(b)}</div>` : `<span class="tag">bilgilendirme</span>`}</div></div>`; }).join("") : `<div class="card mut">Henüz müşteri yok. "＋ Yeni" ile ekle ya da doğrudan "Ödeme aldım"a bas; müşteri orada da açılır.</div>`}
   <button class="ghost" data-go="yedek" style="margin-top:8px">Yedek al / geri yükle</button>
   <p class="mut" style="text-align:center">Veriler bu cihazda saklanır, internet ya da Claude gerekmez.</p>`;
 }
 function yeni() {
-  return `<h2>Yeni müşteri</h2><div class="card"><label>Ad soyad / işletme</label><input id="f-ad" autocomplete="off"><label>WhatsApp numarası (isteğe bağlı)</label><input id="f-tel" inputmode="tel" placeholder="05xx xxx xx xx"><label>Not (isteğe bağlı)</label><input id="f-not"></div><button class="pri" data-act="musteriKaydet">Kaydet</button>`;
+  return `<h2>Yeni müşteri</h2><div class="card"><label>Ad soyad / işletme</label><input id="f-ad" autocomplete="off"><label>WhatsApp numarası (isteğe bağlı)</label><input id="f-tel" inputmode="tel" placeholder="05xx xxx xx xx"><label>Not (isteğe bağlı)</label><input id="f-not"><label class="chk"><input type="checkbox" id="f-yb" style="width:auto"> Ön ödemeli bakiye takibi yap</label></div><button class="pri" data-act="musteriKaydet">Kaydet</button>`;
 }
 function musteri() {
   const m = S.musteriler.find((x) => x.id === V.id); if (!m) return go("ana"), "";
   const b = bak(m), H = m.hareketler || [];
   return `<div class="card"><div class="row"><div class="sp"><b style="font-size:20px">${esc(m.ad)}</b><div class="mut">${esc(m.tel || "numara yok")}${m.not ? " · " + esc(m.not) : ""}</div></div><button class="sm ghost" data-act="musteriDuzenle" data-id="${m.id}">Düzenle</button></div>
-  <div class="mut" style="margin-top:10px">Güncel bakiye</div><div class="big ${bakCls(b)}">${para(b)}</div>${b < 0 ? `<div class="mut neg">Bakiye eksiye düştü: yeni ödeme gerekli</div>` : ""}</div>
+  ${bk(m) ? `<div class="mut" style="margin-top:10px">Güncel bakiye</div><div class="big ${bakCls(b)}">${para(b)}</div>${b < 0 ? `<div class="mut neg">Bakiye eksiye düştü: yeni ödeme gerekli</div>` : ""}` : `<div class="mut" style="margin-top:10px">Bakiye takibi kapalı (sadece bilgilendirme / ödeme belgesi)</div>`}<button class="sm ghost" style="margin-top:10px" data-act="bakTog" data-id="${m.id}">Bakiye takibi: ${bk(m) ? "Açık · kapat" : "Kapalı · aç"}</button></div>
   <div class="grid2" style="margin-bottom:12px"><button class="pri" data-go="odeme" data-id="${m.id}">＋ Ödeme aldım</button><button class="blue" data-go="is" data-id="${m.id}">✓ Bilgilendirme</button></div>
   <div class="card"><b>Hareketler</b>${H.length ? H.slice().map((h, i) => ({ h, i })).reverse().map(({ h, i }) => `<div class="item" data-go="belge" data-id="${m.id}" data-i="${i}" style="cursor:pointer"><div class="sp"><span class="tag">${h.t === "odeme" ? "Ödeme" : "İş"}</span> <b>${esc(h.t === "odeme" ? h.yontem : h.aciklama)}</b><div class="mut">${tr(h.tarih)} · belge ${esc(h.no)}</div></div><div style="text-align:right"><b class="${h.t === "odeme" ? "pos" : ""}">${h.t === "odeme" ? "+" : h.tutar ? "−" : ""}${h.tutar || h.t === "odeme" ? para(h.tutar) : "bilgi"}</b><div class="mut">›</div></div></div>`).join("") : `<div class="mut" style="padding-top:8px">Henüz hareket yok.</div>`}</div>
   <button class="ghost" data-act="musteriSil" data-id="${m.id}">Müşteriyi sil</button>`;
@@ -97,13 +98,13 @@ function musteri() {
 function musteriSecici(sel, yeniVarsayilan) {
   const yv = !sel && (yeniVarsayilan || !S.musteriler.length);
   const L = S.musteriler;
-  return `<label>Müşteri</label><select id="f-m">${L.map((m) => `<option value="${m.id}"${m.id === sel ? " selected" : ""}>${esc(m.ad)} (${para(bak(m))})</option>`).join("")}<option value="__yeni"${yv ? " selected" : ""}>＋ Yeni müşteri…</option></select><div id="yenibox" ${yv ? "" : "hidden"}><label>Yeni müşterinin adı soyadı / işletmesi</label><input id="f-yad" autocomplete="off"><label>WhatsApp numarası (isteğe bağlı)</label><input id="f-ytel" inputmode="tel" placeholder="05xx xxx xx xx"></div>`;
+  return `<label>Müşteri</label><select id="f-m">${L.map((m) => `<option value="${m.id}"${m.id === sel ? " selected" : ""}>${esc(m.ad)} (${para(bak(m))})</option>`).join("")}<option value="__yeni"${yv ? " selected" : ""}>＋ Yeni müşteri…</option></select><div id="yenibox" ${yv ? "" : "hidden"}><label>Yeni müşterinin adı soyadı / işletmesi</label><input id="f-yad" autocomplete="off"><label>WhatsApp numarası (isteğe bağlı)</label><input id="f-ytel" inputmode="tel" placeholder="05xx xxx xx xx"><label class="chk"><input type="checkbox" id="f-yyb" style="width:auto"${yeniVarsayilan ? " checked" : ""}> Ön ödemeli bakiye takibi yap</label></div>`;
 }
 function odemeForm() {
-  return `<h2>Ödeme aldım</h2><div class="card">${musteriSecici(V.id, true)}<label>Tutar (TL)</label><input id="f-tutar" inputmode="decimal" placeholder="örn. 5000"><label>Tarih</label><input id="f-tarih" type="date" value="${bugun()}"><label>Yöntem</label><div class="chips" id="yontem">${["Elden", "Havale / EFT", "Kart", "Diğer"].map((y, i) => `<span class="chip${i === 0 ? " on" : ""}" data-y="${y}">${y}</span>`).join("")}</div><label>Ödemeyi yapan (müşteriden farklıysa)</label><input id="f-ode" placeholder="boşsa müşteri adı yazılır"><label>Dekont / referans no (isteğe bağlı)</label><input id="f-ref"><label>Ne için? (boşsa: hizmet bakiyesi ön ödemesi)</label><input id="f-aciklama" placeholder="örn. Reels + drone paketi ön ödemesi"></div><button class="pri" data-act="odemeKaydet">Belgeyi hazırla</button>`;
+  return `<h2>Ödeme aldım</h2><div class="card">${musteriSecici(V.id, true)}<label>Tutar (TL)</label><input id="f-tutar" inputmode="decimal" placeholder="örn. 5000"><label>Tarih</label><input id="f-tarih" type="date" value="${bugun()}"><label>Yöntem</label><div class="chips" id="yontem">${["Elden", "Havale / EFT", "Kart", "Diğer"].map((y, i) => `<span class="chip${i === 0 ? " on" : ""}" data-y="${y}">${y}</span>`).join("")}</div><label>Ödemeyi yapan (müşteriden farklıysa)</label><input id="f-ode" placeholder="boşsa müşteri adı yazılır"><label>Dekont / referans no (isteğe bağlı)</label><input id="f-ref"><label>Ne için? (boşsa: hizmet ödemesi / ön ödeme)</label><input id="f-aciklama" placeholder="örn. Reels + drone paketi ön ödemesi"></div><button class="pri" data-act="odemeKaydet">Belgeyi hazırla</button>`;
 }
 function isForm() {
-  return `<h2>Bilgilendirme · yapılan iş</h2><div class="card">${musteriSecici(V.id)}<label>Yapılan iş</label><textarea id="f-aciklama" placeholder="örn. 2 adet reels paylaşımı yapıldı"></textarea><div class="grid2"><div><label>Bakiyeden düşülecek tutar (TL)</label><input id="f-tutar" inputmode="decimal"></div><div><label>Tarih</label><input id="f-tarih" type="date" value="${bugun()}"></div></div><label>Gösterim sayısı (isteğe bağlı)</label><input id="f-gos" inputmode="numeric" placeholder="örn. 12400"><p class="mut" style="margin:8px 0 0">Tutarı boş bırakırsan bakiyeden düşmez; sadece bilgilendirme belgesi çıkar.</p><label>Ek not (isteğe bağlı)</label><input id="f-not"></div><button class="blue" data-act="isKaydet">Belgeyi hazırla</button>`;
+  return `<h2>Bilgilendirme · yapılan iş</h2><div class="card">${musteriSecici(V.id)}<label>Yapılan iş</label><textarea id="f-aciklama" placeholder="örn. 2 adet reels paylaşımı yapıldı"></textarea><div class="grid2"><div><label>Bakiyeden düşülecek tutar (TL)</label><input id="f-tutar" inputmode="decimal"></div><div><label>Tarih</label><input id="f-tarih" type="date" value="${bugun()}"></div></div><label>Gösterim sayısı (isteğe bağlı)</label><input id="f-gos" inputmode="numeric" placeholder="örn. 12400"><p class="mut" style="margin:8px 0 0">Tutarı boş bırakırsan bakiyeden düşmez. Bakiye takibi kapalı müşterilerde tutar hiç kullanılmaz, sadece bilgilendirme çıkar.</p><label>Ek not (isteğe bağlı)</label><input id="f-not"></div><button class="blue" data-act="isKaydet">Belgeyi hazırla</button>`;
 }
 function belge() {
   const m = S.musteriler.find((x) => x.id === V.id); const h = m && m.hareketler[V.i]; if (!h) return go("ana"), "";
@@ -133,24 +134,25 @@ function musteriAl() {
   const v = $("#f-m").value;
   if (v !== "__yeni") return S.musteriler.find((x) => x.id === v);
   const ad = $("#f-yad").value.trim(); if (!ad) { toast("Müşteri adını yaz"); return null; }
-  const m = { id: yeniId(), ad, tel: $("#f-ytel").value.trim(), not: "", hareketler: [] }; S.musteriler.push(m); return m;
+  const m = { id: yeniId(), ad, tel: $("#f-ytel").value.trim(), not: "", bakiyeli: $("#f-yyb").checked, hareketler: [] }; S.musteriler.push(m); return m;
 }
 function belgeNo() { S.sayac = (S.sayac || 0) + 1; const d = new Date(); return "VX-" + String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, "0") + String(d.getDate()).padStart(2, "0") + "-" + String(S.sayac).padStart(3, "0"); }
 function act(a, d) {
-  if (a === "musteriKaydet") { const ad = $("#f-ad").value.trim(); if (!ad) return toast("Adı yaz"); const m = { id: yeniId(), ad, tel: $("#f-tel").value.trim(), not: $("#f-not").value.trim(), hareketler: [] }; S.musteriler.push(m); save(); return go("musteri", { id: m.id }); }
+  if (a === "musteriKaydet") { const ad = $("#f-ad").value.trim(); if (!ad) return toast("Adı yaz"); const m = { id: yeniId(), ad, tel: $("#f-tel").value.trim(), not: $("#f-not").value.trim(), bakiyeli: $("#f-yb").checked, hareketler: [] }; S.musteriler.push(m); save(); return go("musteri", { id: m.id }); }
   if (a === "musteriDuzenle") { const m = S.musteriler.find((x) => x.id === d.id); const ad = prompt("Ad soyad / işletme", m.ad); if (ad === null) return; const tel = prompt("WhatsApp numarası", m.tel || ""); if (tel === null) return; m.ad = ad.trim() || m.ad; m.tel = tel.trim(); save(); return render(); }
+  if (a === "bakTog") { const m = S.musteriler.find((x) => x.id === d.id); m.bakiyeli = !bk(m); save(); return render(); }
   if (a === "musteriSil") { const m = S.musteriler.find((x) => x.id === d.id); if (!confirm(m.ad + " ve tüm kayıtları silinsin mi? Geri alınamaz.")) return; S.musteriler = S.musteriler.filter((x) => x !== m); save(); return go("ana"); }
   if (a === "odemeKaydet") {
     const t = num($("#f-tutar").value); if (!(t > 0)) return toast("Tutarı yaz");
     const m = musteriAl(); if (!m) return;
     const y = (document.querySelector("#yontem .chip.on") || {}).dataset; 
-    m.hareketler.push({ t: "odeme", tutar: t, tarih: $("#f-tarih").value || bugun(), yontem: (y && y.y) || "Elden", aciklama: $("#f-aciklama").value.trim() || "Hizmet bakiyesi ön ödemesi", odeyen: $("#f-ode").value.trim(), ref: $("#f-ref").value.trim(), saat: new Date().toTimeString().slice(0, 5), no: belgeNo() }); save();
+    m.hareketler.push({ t: "odeme", tutar: t, tarih: $("#f-tarih").value || bugun(), yontem: (y && y.y) || "Elden", aciklama: $("#f-aciklama").value.trim() || (bk(m) ? "Hizmet bakiyesi ön ödemesi" : "Hizmet ödemesi"), odeyen: $("#f-ode").value.trim(), ref: $("#f-ref").value.trim(), saat: new Date().toTimeString().slice(0, 5), no: belgeNo() }); save();
     return go("belge", { id: m.id, i: m.hareketler.length - 1 });
   }
   if (a === "isKaydet") {
     const ac = $("#f-aciklama").value.trim(); if (!ac) return toast("Yapılan işi yaz");
     let t = num($("#f-tutar").value); if (!(t > 0)) t = 0;
-    const m = musteriAl(); if (!m) return;
+    const m = musteriAl(); if (!m) return; if (!bk(m)) t = 0;
     const g = num($("#f-gos").value);
     m.hareketler.push({ t: "is", saat: new Date().toTimeString().slice(0, 5), tutar: t, tarih: $("#f-tarih").value || bugun(), aciklama: ac, gosterim: g > 0 ? g : 0, ek: $("#f-not").value.trim(), no: belgeNo() }); save();
     return go("belge", { id: m.id, i: m.hareketler.length - 1 });
@@ -176,12 +178,13 @@ function act(a, d) {
 /* ---------- yazı (WhatsApp/SMS) ---------- */
 function mesaj(m, i) {
   const h = m.hareketler[i], onceki = bak(m, i - 1), sonra = bak(m, i), s = [];
+  const B = bk(m);
   if (h.t === "odeme") {
-    s.push("Sayın " + m.ad + ",", "", tr(h.tarih) + " tarihinde " + para(h.tutar) + " tutarındaki ödemeniz " + h.yontem.toLowerCase().replace("elden", "elden") + (h.yontem === "Elden" ? " teslim" : " yoluyla") + " alınmıştır." + (h.aciklama ? " (" + h.aciklama + ")" : ""), "Güncel bakiyeniz: " + para(sonra), ...(h.ref ? ["Dekont/referans: " + h.ref] : []), "Belge no: " + h.no, "", "Teşekkür ederiz.");
+    s.push("Sayın " + m.ad + ",", "", tr(h.tarih) + " tarihinde " + para(h.tutar) + " tutarındaki ödemeniz " + h.yontem.toLowerCase().replace("elden", "elden") + (h.yontem === "Elden" ? " teslim" : " yoluyla") + " alınmıştır." + (h.aciklama ? " (" + h.aciklama + ")" : ""), ...(B ? ["Güncel bakiyeniz: " + para(sonra)] : []), ...(h.ref ? ["Dekont/referans: " + h.ref] : []), "Belge no: " + h.no, "", "Teşekkür ederiz.");
   } else {
-    s.push("Sayın " + m.ad + ",", "", tr(h.tarih) + ": " + h.aciklama + "." + (h.gosterim ? " Gösterim sayısı: " + h.gosterim.toLocaleString("tr-TR") + "." : ""), ...(h.tutar > 0 ? ["Bu işin bedeli " + para(h.tutar) + " bakiyenizden düşülmüştür.", "Kalan bakiyeniz: " + para(sonra) + "."] : ["Güncel bakiyeniz: " + para(sonra) + "."]));
+    s.push("Sayın " + m.ad + ",", "", tr(h.tarih) + ": " + h.aciklama + "." + (h.gosterim ? " Gösterim sayısı: " + h.gosterim.toLocaleString("tr-TR") + "." : ""), ...(!B ? [] : h.tutar > 0 ? ["Bu işin bedeli " + para(h.tutar) + " bakiyenizden düşülmüştür.", "Kalan bakiyeniz: " + para(sonra) + "."] : ["Güncel bakiyeniz: " + para(sonra) + "."]));
     if (h.ek) s.push(h.ek);
-    if (sonra < 0) s.push("Bakiyeniz tükenmiştir; çalışmalara devam edebilmemiz için yeni bir ödeme gerekmektedir.");
+    if (B && sonra < 0) s.push("Bakiyeniz tükenmiştir; çalışmalara devam edebilmemiz için yeni bir ödeme gerekmektedir.");
     s.push("Belge no: " + h.no, "", "Teşekkür ederiz.");
   }
   s.push("VERTEX flux · " + HV.ad + " · " + HV.tel);
@@ -213,17 +216,17 @@ function cizBelge() {
   if (h.t === "odeme") {
     sec("2", "Ödeme bilgisi"); y += 14;
     const r = [["Alınan tutar", para(h.tutar), true], ["Ödeme tarihi", tr(h.tarih) + (h.saat ? " · " + h.saat : "")], ["Ödeme yöntemi", h.yontem]]; if (h.odeyen) r.push(["Ödemeyi yapan", h.odeyen]); if (h.ref) r.push(["Dekont / referans", h.ref]); if (h.aciklama) r.push(["Açıklama", h.aciklama.length > 38 ? h.aciklama.slice(0, 37) + "…" : h.aciklama]); tablo(r);
-    y += 44; sec("3", "Bakiye"); y += 14;
-    tablo([["Önceki bakiye", para(onceki)], ["Bu ödeme", "+ " + para(h.tutar)], ["Güncel bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]]);
-    y += 40; y += wrap(h.tarih ? tr(h.tarih) + " tarihinde " + para(h.tutar) + " tutarındaki ödeme " + (h.yontem === "Elden" ? "elden teslim alınmıştır" : h.yontem + " yoluyla alınmıştır") + ". Alınan tutar, " + m.ad + " adına tutulan hizmet bakiyesine eklenmiştir." : "", P, IW, 40, "500 28px " + F, "#2a2f3c");
+    if (bk(m)) { y += 44; sec("3", "Bakiye"); y += 14;
+      tablo([["Önceki bakiye", para(onceki)], ["Bu ödeme", "+ " + para(h.tutar)], ["Güncel bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]]); }
+    y += 40; y += wrap(tr(h.tarih) + " tarihinde " + para(h.tutar) + " tutarındaki ödeme " + (h.yontem === "Elden" ? "elden teslim alınmıştır" : h.yontem + " yoluyla alınmıştır") + (bk(m) ? ". Alınan tutar, " + m.ad + " adına tutulan hizmet bakiyesine eklenmiştir." : "."), P, IW, 40, "500 28px " + F, "#2a2f3c");
   } else {
     sec("2", "Yapılan iş"); y += 14;
     const r = [["İş", h.aciklama.length > 40 ? h.aciklama.slice(0, 39) + "…" : h.aciklama], ["Tarih", tr(h.tarih)]]; if (h.gosterim) r.push(["Gösterim sayısı", h.gosterim.toLocaleString("tr-TR")]); if (h.tutar > 0) r.push(["Bakiyeden düşülen", para(h.tutar), true]); tablo(r);
     if (h.aciklama.length > 40) { y -= 2; y += wrap("İş: " + h.aciklama, P, IW, 36, "500 25px " + F, "#5b6475") + 6; }
-    y += 44; sec("3", "Bakiye"); y += 14;
-    tablo(h.tutar > 0 ? [["Önceki bakiye", para(onceki)], ["Bu işin bedeli", "− " + para(h.tutar)], ["Kalan bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]] : [["Güncel bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]]);
-    if (h.ek) { y += 6; y += wrap(h.ek, P, IW, 38, "500 27px " + F, "#2a2f3c") + 8; }
-    if (sonra < 0) { y += 10; g.fillStyle = "#fdecea"; g.fillRect(P, y, IW, 118); g.fillStyle = "#c0392b"; g.fillRect(P, y, 10, 118); y += 46; wrap("Bakiyeniz tükenmiştir (" + para(sonra) + "). Çalışmalara devam edebilmemiz için yeni bir ödeme gerekmektedir.", P + 34, IW - 60, 38, "700 27px " + F, "#8e2a20"); y += 90; }
+    if (bk(m)) { y += 44; sec("3", "Bakiye"); y += 14;
+    tablo(h.tutar > 0 ? [["Önceki bakiye", para(onceki)], ["Bu işin bedeli", "− " + para(h.tutar)], ["Kalan bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]] : [["Güncel bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]]); }
+    if (h.ek) { y += bk(m) ? 6 : 34; y += wrap(h.ek, P, IW, 38, "500 27px " + F, "#2a2f3c") + 8; }
+    if (bk(m) && sonra < 0) { y += 10; g.fillStyle = "#fdecea"; g.fillRect(P, y, IW, 118); g.fillStyle = "#c0392b"; g.fillRect(P, y, 10, 118); y += 46; wrap("Bakiyeniz tükenmiştir (" + para(sonra) + "). Çalışmalara devam edebilmemiz için yeni bir ödeme gerekmektedir.", P + 34, IW - 60, 38, "700 27px " + F, "#8e2a20"); y += 90; }
   }
   y += 40;
   // alt bant
