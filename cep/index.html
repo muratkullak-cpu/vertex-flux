@@ -76,7 +76,7 @@ function head() { return `<header><img src="${LOGO}" alt=""><div><b>VERTEX Cep</
 function render() { const a = $("#app"); a.innerHTML = head() + (V.ekran === "ana" ? ana() : V.ekran === "musteri" ? musteri() : V.ekran === "odeme" ? odemeForm() : V.ekran === "is" ? isForm() : V.ekran === "belge" ? belge() : V.ekran === "yedek" ? yedek() : V.ekran === "yeni" ? yeni() : ""); if (V.ekran === "belge") cizBelge(); }
 function ana() {
   const L = S.musteriler;
-  return `<div class="grid2" style="margin-bottom:12px"><button class="pri" data-go="odeme">＋ Ödeme aldım</button><button class="blue" data-go="is">✓ İş yaptım</button></div>
+  return `<div class="grid2" style="margin-bottom:12px"><button class="pri" data-go="odeme">＋ Ödeme aldım</button><button class="blue" data-go="is">✓ Bilgilendirme</button></div>
   <div class="row" style="margin:6px 0 8px"><h2 class="sp" style="margin:0">Müşteriler</h2><button class="sm" data-go="yeni">＋ Yeni</button></div>
   ${L.length ? L.map((m) => { const b = bak(m); return `<div class="card" data-go="musteri" data-id="${m.id}" style="cursor:pointer"><div class="row"><div class="sp"><b>${esc(m.ad)}</b><div class="mut">${(m.hareketler || []).length} kayıt${m.tel ? " · " + esc(m.tel) : ""}</div></div><div class="big ${bakCls(b)}">${para(b)}</div></div></div>`; }).join("") : `<div class="card mut">Henüz müşteri yok. "＋ Yeni" ile ekle ya da doğrudan "Ödeme aldım"a bas; müşteri orada da açılır.</div>`}
   <button class="ghost" data-go="yedek" style="margin-top:8px">Yedek al / geri yükle</button>
@@ -90,8 +90,8 @@ function musteri() {
   const b = bak(m), H = m.hareketler || [];
   return `<div class="card"><div class="row"><div class="sp"><b style="font-size:20px">${esc(m.ad)}</b><div class="mut">${esc(m.tel || "numara yok")}${m.not ? " · " + esc(m.not) : ""}</div></div><button class="sm ghost" data-act="musteriDuzenle" data-id="${m.id}">Düzenle</button></div>
   <div class="mut" style="margin-top:10px">Güncel bakiye</div><div class="big ${bakCls(b)}">${para(b)}</div>${b < 0 ? `<div class="mut neg">Bakiye eksiye düştü: yeni ödeme gerekli</div>` : ""}</div>
-  <div class="grid2" style="margin-bottom:12px"><button class="pri" data-go="odeme" data-id="${m.id}">＋ Ödeme aldım</button><button class="blue" data-go="is" data-id="${m.id}">✓ İş yaptım</button></div>
-  <div class="card"><b>Hareketler</b>${H.length ? H.slice().map((h, i) => ({ h, i })).reverse().map(({ h, i }) => `<div class="item" data-go="belge" data-id="${m.id}" data-i="${i}" style="cursor:pointer"><div class="sp"><span class="tag">${h.t === "odeme" ? "Ödeme" : "İş"}</span> <b>${esc(h.t === "odeme" ? h.yontem : h.aciklama)}</b><div class="mut">${tr(h.tarih)} · belge ${esc(h.no)}</div></div><div style="text-align:right"><b class="${h.t === "odeme" ? "pos" : ""}">${h.t === "odeme" ? "+" : "−"}${para(h.tutar)}</b><div class="mut">›</div></div></div>`).join("") : `<div class="mut" style="padding-top:8px">Henüz hareket yok.</div>`}</div>
+  <div class="grid2" style="margin-bottom:12px"><button class="pri" data-go="odeme" data-id="${m.id}">＋ Ödeme aldım</button><button class="blue" data-go="is" data-id="${m.id}">✓ Bilgilendirme</button></div>
+  <div class="card"><b>Hareketler</b>${H.length ? H.slice().map((h, i) => ({ h, i })).reverse().map(({ h, i }) => `<div class="item" data-go="belge" data-id="${m.id}" data-i="${i}" style="cursor:pointer"><div class="sp"><span class="tag">${h.t === "odeme" ? "Ödeme" : "İş"}</span> <b>${esc(h.t === "odeme" ? h.yontem : h.aciklama)}</b><div class="mut">${tr(h.tarih)} · belge ${esc(h.no)}</div></div><div style="text-align:right"><b class="${h.t === "odeme" ? "pos" : ""}">${h.t === "odeme" ? "+" : h.tutar ? "−" : ""}${h.tutar || h.t === "odeme" ? para(h.tutar) : "bilgi"}</b><div class="mut">›</div></div></div>`).join("") : `<div class="mut" style="padding-top:8px">Henüz hareket yok.</div>`}</div>
   <button class="ghost" data-act="musteriSil" data-id="${m.id}">Müşteriyi sil</button>`;
 }
 function musteriSecici(sel, yeniVarsayilan) {
@@ -103,7 +103,7 @@ function odemeForm() {
   return `<h2>Ödeme aldım</h2><div class="card">${musteriSecici(V.id, true)}<label>Tutar (TL)</label><input id="f-tutar" inputmode="decimal" placeholder="örn. 5000"><label>Tarih</label><input id="f-tarih" type="date" value="${bugun()}"><label>Yöntem</label><div class="chips" id="yontem">${["Elden", "Havale / EFT", "Kart", "Diğer"].map((y, i) => `<span class="chip${i === 0 ? " on" : ""}" data-y="${y}">${y}</span>`).join("")}</div><label>Ödemeyi yapan (müşteriden farklıysa)</label><input id="f-ode" placeholder="boşsa müşteri adı yazılır"><label>Dekont / referans no (isteğe bağlı)</label><input id="f-ref"><label>Ne için? (boşsa: hizmet bakiyesi ön ödemesi)</label><input id="f-aciklama" placeholder="örn. Reels + drone paketi ön ödemesi"></div><button class="pri" data-act="odemeKaydet">Belgeyi hazırla</button>`;
 }
 function isForm() {
-  return `<h2>İş yaptım · bakiyeden düş</h2><div class="card">${musteriSecici(V.id)}<label>Yapılan iş</label><textarea id="f-aciklama" placeholder="örn. 2 adet reels paylaşımı yapıldı"></textarea><div class="grid2"><div><label>Düşülecek tutar (TL)</label><input id="f-tutar" inputmode="decimal"></div><div><label>Tarih</label><input id="f-tarih" type="date" value="${bugun()}"></div></div><label>Gösterim sayısı (isteğe bağlı)</label><input id="f-gos" inputmode="numeric" placeholder="örn. 12400"><label>Ek not (isteğe bağlı)</label><input id="f-not"></div><button class="blue" data-act="isKaydet">Belgeyi hazırla</button>`;
+  return `<h2>Bilgilendirme · yapılan iş</h2><div class="card">${musteriSecici(V.id)}<label>Yapılan iş</label><textarea id="f-aciklama" placeholder="örn. 2 adet reels paylaşımı yapıldı"></textarea><div class="grid2"><div><label>Bakiyeden düşülecek tutar (TL)</label><input id="f-tutar" inputmode="decimal"></div><div><label>Tarih</label><input id="f-tarih" type="date" value="${bugun()}"></div></div><label>Gösterim sayısı (isteğe bağlı)</label><input id="f-gos" inputmode="numeric" placeholder="örn. 12400"><p class="mut" style="margin:8px 0 0">Tutarı boş bırakırsan bakiyeden düşmez; sadece bilgilendirme belgesi çıkar.</p><label>Ek not (isteğe bağlı)</label><input id="f-not"></div><button class="blue" data-act="isKaydet">Belgeyi hazırla</button>`;
 }
 function belge() {
   const m = S.musteriler.find((x) => x.id === V.id); const h = m && m.hareketler[V.i]; if (!h) return go("ana"), "";
@@ -149,7 +149,7 @@ function act(a, d) {
   }
   if (a === "isKaydet") {
     const ac = $("#f-aciklama").value.trim(); if (!ac) return toast("Yapılan işi yaz");
-    const t = num($("#f-tutar").value); if (!(t > 0)) return toast("Düşülecek tutarı yaz");
+    let t = num($("#f-tutar").value); if (!(t > 0)) t = 0;
     const m = musteriAl(); if (!m) return;
     const g = num($("#f-gos").value);
     m.hareketler.push({ t: "is", saat: new Date().toTimeString().slice(0, 5), tutar: t, tarih: $("#f-tarih").value || bugun(), aciklama: ac, gosterim: g > 0 ? g : 0, ek: $("#f-not").value.trim(), no: belgeNo() }); save();
@@ -179,7 +179,7 @@ function mesaj(m, i) {
   if (h.t === "odeme") {
     s.push("Sayın " + m.ad + ",", "", tr(h.tarih) + " tarihinde " + para(h.tutar) + " tutarındaki ödemeniz " + h.yontem.toLowerCase().replace("elden", "elden") + (h.yontem === "Elden" ? " teslim" : " yoluyla") + " alınmıştır." + (h.aciklama ? " (" + h.aciklama + ")" : ""), "Güncel bakiyeniz: " + para(sonra), ...(h.ref ? ["Dekont/referans: " + h.ref] : []), "Belge no: " + h.no, "", "Teşekkür ederiz.");
   } else {
-    s.push("Sayın " + m.ad + ",", "", tr(h.tarih) + ": " + h.aciklama + "." + (h.gosterim ? " Gösterim sayısı: " + h.gosterim.toLocaleString("tr-TR") + "." : ""), "Bu işin bedeli " + para(h.tutar) + " bakiyenizden düşülmüştür.", "Kalan bakiyeniz: " + para(sonra) + ".");
+    s.push("Sayın " + m.ad + ",", "", tr(h.tarih) + ": " + h.aciklama + "." + (h.gosterim ? " Gösterim sayısı: " + h.gosterim.toLocaleString("tr-TR") + "." : ""), ...(h.tutar > 0 ? ["Bu işin bedeli " + para(h.tutar) + " bakiyenizden düşülmüştür.", "Kalan bakiyeniz: " + para(sonra) + "."] : ["Güncel bakiyeniz: " + para(sonra) + "."]));
     if (h.ek) s.push(h.ek);
     if (sonra < 0) s.push("Bakiyeniz tükenmiştir; çalışmalara devam edebilmemiz için yeni bir ödeme gerekmektedir.");
     s.push("Belge no: " + h.no, "", "Teşekkür ederiz.");
@@ -218,10 +218,10 @@ function cizBelge() {
     y += 40; y += wrap(h.tarih ? tr(h.tarih) + " tarihinde " + para(h.tutar) + " tutarındaki ödeme " + (h.yontem === "Elden" ? "elden teslim alınmıştır" : h.yontem + " yoluyla alınmıştır") + ". Alınan tutar, " + m.ad + " adına tutulan hizmet bakiyesine eklenmiştir." : "", P, IW, 40, "500 28px " + F, "#2a2f3c");
   } else {
     sec("2", "Yapılan iş"); y += 14;
-    const r = [["İş", h.aciklama.length > 40 ? h.aciklama.slice(0, 39) + "…" : h.aciklama], ["Tarih", tr(h.tarih)]]; if (h.gosterim) r.push(["Gösterim sayısı", h.gosterim.toLocaleString("tr-TR")]); r.push(["Bakiyeden düşülen", para(h.tutar), true]); tablo(r);
+    const r = [["İş", h.aciklama.length > 40 ? h.aciklama.slice(0, 39) + "…" : h.aciklama], ["Tarih", tr(h.tarih)]]; if (h.gosterim) r.push(["Gösterim sayısı", h.gosterim.toLocaleString("tr-TR")]); if (h.tutar > 0) r.push(["Bakiyeden düşülen", para(h.tutar), true]); tablo(r);
     if (h.aciklama.length > 40) { y -= 2; y += wrap("İş: " + h.aciklama, P, IW, 36, "500 25px " + F, "#5b6475") + 6; }
     y += 44; sec("3", "Bakiye"); y += 14;
-    tablo([["Önceki bakiye", para(onceki)], ["Bu işin bedeli", "− " + para(h.tutar)], ["Kalan bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]]);
+    tablo(h.tutar > 0 ? [["Önceki bakiye", para(onceki)], ["Bu işin bedeli", "− " + para(h.tutar)], ["Kalan bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]] : [["Güncel bakiye", para(sonra), true, sonra < 0 ? "#c0392b" : "#14161c"]]);
     if (h.ek) { y += 6; y += wrap(h.ek, P, IW, 38, "500 27px " + F, "#2a2f3c") + 8; }
     if (sonra < 0) { y += 10; g.fillStyle = "#fdecea"; g.fillRect(P, y, IW, 118); g.fillStyle = "#c0392b"; g.fillRect(P, y, 10, 118); y += 46; wrap("Bakiyeniz tükenmiştir (" + para(sonra) + "). Çalışmalara devam edebilmemiz için yeni bir ödeme gerekmektedir.", P + 34, IW - 60, 38, "700 27px " + F, "#8e2a20"); y += 90; }
   }
